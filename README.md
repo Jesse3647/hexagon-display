@@ -1,10 +1,10 @@
 # Honeycomb Workshop
 
-A local, browser-based generator for modular honeycomb display pods. Node serves the editor; Manifold WebAssembly generates the actual printable geometry in a browser worker. The Three.js preview, STL exporter and 3MF exporter use the same meshes.
+Design a modular honeycomb display, customize its connectors, and download STL or 3MF files for printing. Build one pod or an interlocking assembly, with solid walls wherever connectors are switched off.
 
-![Honeycomb Workshop showing a 10-pod assembly in the interactive 3D preview, with dimensions and STL/3MF export controls](docs/images/honeycomb-workshop.jpg)
+![Generated honeycomb display with ten full pods and two flat-bottom half fillers](docs/images/generated-display.png)
 
-*Build your layout, customize the connectors, and download a model ready for your slicer.*
+*A five-column display generated in the editor: ten full pods and two half fillers. This is a model preview example of what can be generated.*
 
 ## Run locally
 
@@ -21,26 +21,70 @@ For a production build, run `pnpm build`, then `pnpm start`. No account, databas
 
 The app, launcher and package commands live at the repository root. The original Python generator and spline-based exports have been removed; the original design remains in Git history. Current example models and verification reports are in [`generated/`](generated/).
 
-## Single pod
+## Editor walkthrough
 
-Choose Full or Half and turn each connector on or off. Labels are always viewed from the open front, regardless of the camera angle:
+On desktop, the model stays in view on the left while the configuration panel scrolls on the right. On smaller screens, the sections stack vertically.
+
+### 1. Choose a single pod
+
+Use **Single pod** to make one full hexagon or the upper-half pod. Start with solid walls, then enable just the connectors you need.
+
+![Single pod mode with Full pod and Half pod choices](docs/images/single-pod.png)
+
+### 2. Build an assembly
+
+Switch to **Assembly** and set **Across** and **Tall**. The layout uses staggered columns; Tall counts full-pod cells in each column. Select a cell to remove it, restore it, or change it to a half pod. **Add flat-bottom fillers** fills the short gaps beneath raised columns.
+
+![Assembly layout with five columns, two rows, a selected cell and flat-bottom fillers enabled](docs/images/assembly-layout.png)
+
+Neighbors connect automatically, and exposed edges stay closed. The example has ten full pods and two half fillers. Layouts can be up to 20 × 20, plus applicable fillers; compare the resulting dimensions with your print bed.
+
+### 3. Pick the connectors
+
+Click an edge in the front-view diagram or use its switch. An enabled edge has an integrated rail or channel; a disabled edge becomes an uninterrupted wall. Shared-edge changes update both neighboring pods. Exposed edges can be enabled for future expansion.
+
+![Front-view connector diagram and six labeled edge switches](docs/images/connectors.png)
 
 | Edge | Enabled connector |
 | --- | --- |
-| N, NE, SE | Integrated male dovetail rail |
+| N, NE, SE | Male dovetail rail |
 | S, SW, NW | Female dovetail channel |
 
-The upper-half pod supports N, NE and NW; its bottom is always solid. Off edges are uninterrupted walls. The opening height remains 30 mm, interior depth 19.65 mm, wall thickness 2 mm, back 2.4 mm, and total depth 22.05 mm. The half shape retains the original compartment dimensions. Male rails are recessed behind the front face.
+The half pod supports N, NE and NW; its bottom is always solid. Edge labels always refer to the open front, even when you rotate the preview.
 
-## Editable assembly
+### 4. Adjust the fit
 
-Across and Tall specify the number of columns and full-pod cells per column; odd columns are staggered by half a pitch. You can remove and restore cells or replace them with upper-half pods. Click a cell in the diagram or a pod in the 3D preview to edit it.
+Expand **Fit & clearances** to adjust the wall gap, connector clearance and front-stop clearance. Use the same settings for pods that will connect. These values are calibration starting points; print the samples before making a large set.
 
-Neighbors connect automatically. An override on a shared edge changes both sides, while a perimeter edge can be enabled for future expansion. Turning a joint off can produce disconnected groups; export all groups together or choose one group. The generated array is a collection of separate, interlocked solids, never a fused union.
+![Expanded clearance settings with separate sliders for walls, connectors and front stops](docs/images/clearances.png)
 
-Flat-bottom fillers occupy the half-height gaps below raised columns. Their floors are trimmed by half the wall gap (0.15 mm at the default settings) to share the full pods' bottom plane. Irregular silhouettes may contain gaps too tall for one half filler; the editor reports these instead of stretching a compartment.
+### 5. Inspect the model
 
-The maximum input is 20 × 20, plus applicable base fillers. Check the displayed overall dimensions against your print bed; the generator does not assume a printer size or automatically tile across plates.
+Drag to orbit and scroll over the model to zoom. **Front**, **Rear** and **Reset** change the view. Click a pod to select it; the darker highlight matches the selected cell in the layout. The measurements show the whole model's width, height, depth and number of separate printable bodies.
+
+![Orbitable assembly preview with view controls, geometry status and overall dimensions](docs/images/preview.png)
+
+The preview uses the same generated meshes as the downloads. **Geometry checked** means the digital checks passed; it does not establish physical fit on your printer.
+
+### 6. Export and preview removal
+
+Use **STL** or **Export 3MF** beneath the preview. The arrow controls step through the order for sliding pods apart; the reset arrow restores the assembled view. Reassembly follows the reverse order.
+
+![STL and 3MF export buttons, removal-step controls and the right-aligned Calibrate fit button](docs/images/exports.png)
+
+Downloads stay disabled while the model is updating or invalid. If a layout contains disconnected groups, an **Export group** selector lets you download one group or all of them. 3MF preserves each pod as a separate component in a positioned assembly.
+
+### 7. Download calibration samples
+
+Click **Calibrate fit** on the right of the export bar. The dialog offers **Print-in-place samples** for testing release after printing and **Separate-fit samples** for testing parts printed apart. Each ZIP contains labeled STL and 3MF samples at three clearances, plus printing instructions.
+
+![Calibration dialog with print-in-place and separate-fit sample downloads](docs/images/calibration.png)
+
+## Model dimensions
+
+The clear opening height is 30 mm, interior depth is 19.65 mm, wall thickness is 2 mm, back thickness is 2.4 mm, and total depth is 22.05 mm. The half pod keeps the original compartment dimensions; male rails are recessed behind the front face.
+
+Flat-bottom fillers are trimmed by half the wall gap (0.15 mm at the default settings) so their floors share the full pods' bottom plane. Irregular silhouettes may leave gaps too tall for one filler; the editor reports these instead of stretching a compartment.
 
 ## Fit and printing
 
@@ -66,6 +110,8 @@ STL is a binary mesh with disconnected closed shells and coordinates in millimet
 Downloads are unavailable while generation is pending or when collision checks fail. The last generated preview may remain visible during an update. Mesh and pair caches are bounded; old worker results cannot replace a newer configuration.
 
 ## Validation and development
+
+Node serves the editor. Manifold WebAssembly generates printable geometry in a browser worker; Three.js displays the same meshes used by both exporters.
 
 ```sh
 pnpm test

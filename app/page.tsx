@@ -253,8 +253,7 @@ export default function Home() {
           </div>
         </Link>
         <div className="local-status">
-          <span />
-          Local workspace <small>V2</small>
+          <small>V2</small>
         </div>
       </header>
       <div className="workspace">
