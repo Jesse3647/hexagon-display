@@ -1,0 +1,314 @@
+{
+  "mesh_checks": {
+    "all_connectors": {
+      "success": true,
+      "closed_bodies": 1,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "assembly_3x3": {
+      "success": true,
+      "closed_bodies": 10,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_in_place_0.20": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_in_place_0.30": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_in_place_0.40": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_separate_0.20": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_separate_0.30": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_separate_0.40": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "closed_pod": {
+      "success": true,
+      "closed_bodies": 1,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "edited_assembly": {
+      "success": true,
+      "closed_bodies": 8,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "half_pod": {
+      "success": true,
+      "closed_bodies": 1,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    }
+  },
+  "sampled_toolpath_checks": {
+    "assembly_3x3": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2965,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2965,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.297,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2969,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2996,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2995,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 10,
+          "distinct_extruded_bodies": 10,
+          "minimum_xy_bead_gap_mm": 0.2998,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "success": true
+    },
+    "edited_assembly": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2957,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2957,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.297,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2969,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2994,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2996,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 8,
+          "distinct_extruded_bodies": 8,
+          "minimum_xy_bead_gap_mm": 0.2998,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "success": true
+    },
+    "calibration_in_place_0.20": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.2,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.2,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.1998,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.2328,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "success": true
+    },
+    "calibration_in_place_0.30": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.2975,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.2975,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "success": true
+    },
+    "calibration_in_place_0.40": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 0.3,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "success": true
+    }
+  },
+  "physical_validation": false,
+  "note": "Toolpath checks buffer positive-extrusion moves by half the declared line width on seven sampled layers. Body witnesses from slicer-transformed meshes must map to distinct extrusion-envelope islands. This verifies nominal separated bead envelopes, not extrusion behavior or adhesion on a physical printer."
+}

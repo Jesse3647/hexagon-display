@@ -1,0 +1,135 @@
+{
+  "application": "Bambu Studio 02.08.02.61",
+  "profile": {
+    "printer": "Bambu Lab X1 Carbon 0.4 nozzle",
+    "material": "Generic PLA",
+    "layer_height_mm": 0.2,
+    "wall_loops": 3,
+    "infill": "15%",
+    "supports": false
+  },
+  "physical_validation": false,
+  "models": {
+    "closed_pod": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 628919,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:40.407564] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "all_connectors": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 1791385,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:40.906229] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "half_pod": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 1335474,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:41.526650] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "assembly_3x3": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 13520496,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:42.072935] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "edited_assembly": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 8763980,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:44.191200] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_in_place_0.20": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 594601,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:45.672071] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_in_place_0.30": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 591269,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:46.143296] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_in_place_0.40": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 567197,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:46.607191] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_separate_0.20": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 586356,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:47.074506] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_separate_0.30": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 586814,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:47.533361] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "calibration_separate_0.40": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 569989,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-07 17:25:47.993866] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    }
+  }
+}

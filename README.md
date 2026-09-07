@@ -1,114 +1,110 @@
-# Modular Honeycomb Mini-Figure Display
+# Honeycomb Workshop
 
-A compact, 3D-printable display for miniature figures up to about 1 inch (25.4 mm) tall. Individual backed hexagonal pods can be combined into custom honeycomb arrangements and locked together with removable, full-depth dovetail splines.
+A local, browser-based generator for modular honeycomb display pods. Node serves the editor; Manifold WebAssembly generates the actual printable geometry in a browser worker. The Three.js preview, STL exporter and 3MF exporter use the same meshes.
 
-![Front and rear rendering of the seven-pod display](generated/assembly_preview.png)
+![Honeycomb Workshop showing a 10-pod assembly in the interactive 3D preview, with dimensions and STL/3MF export controls](docs/images/honeycomb-workshop.jpg)
 
-## Design
+*Build your layout, customize the connectors, and download a model ready for your slicer.*
 
-Each full pod has a flush open front and its own solid, flat back. The connector channels run along the pod walls from the rear toward the front. When two pod edges meet, their half-channels form a double-dovetail passage. A joining spline slides into that passage and captures both pods across almost their entire depth, making the front of the assembly substantially more rigid than a rear-only clip.
+## Run locally
 
-Unused perimeter channels can be closed with a matching one-sided finishing spline. Its outer face sits flush with the pod edge, while the connector remains hidden 1.6 mm behind the front.
+Requires Node.js 22.13+ and pnpm. From the repository root:
 
-![Full-depth joining and exposed-edge finishing splines](generated/connector_preview.png)
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-The included half pod fills the staggered gaps along the bottom of a flat-top honeycomb arrangement. Its wide bottom edge sits directly on a desk, eliminating the need for projecting feet.
+Open the Local URL printed in the terminal, normally http://127.0.0.1:3000. On macOS you can also double-click `start-local.command`; it uses an installed Node/pnpm or the Codex bundled runtime when available. Keep that terminal open while using the editor.
 
-### Dimensions
+For a production build, run `pnpm build`, then `pnpm start`. No account, database, Python service or external geometry API is needed. Dependencies must be installed once; previews and downloads then run on your device. The application is not registered or published to a hosting service.
 
-| Feature | Dimension |
-| --- | ---: |
-| Clear opening height | 30.0 mm |
-| Clear opening width at center | 34.64 mm |
-| Clear interior depth | 19.65 mm |
-| Full pod exterior | 39.26 × 34.0 × 22.05 mm |
-| Half pod exterior | 39.26 × 17.0 × 22.05 mm |
-| Wall thickness | 2.0 mm |
-| Solid back thickness | 2.4 mm |
-| Spline engagement length | 20.45 mm |
-| Uninterrupted front stop | 1.6 mm |
+The app, launcher and package commands live at the repository root. The original Python generator and spline-based exports have been removed; the original design remains in Git history. Current example models and verification reports are in [`generated/`](generated/).
 
-The compartment is 6.35 mm (1/4 inch) shallower than the original deep-pod design.
+## Single pod
 
-## Printable files
+Choose Full or Half and turn each connector on or off. Labels are always viewed from the open front, regardless of the camera angle:
 
-All generated files are in [`generated/`](generated/).
-
-| File | Purpose |
+| Edge | Enabled connector |
 | --- | --- |
-| [`hex_pod.stl`](generated/hex_pod.stl) | Universal full-size compartment |
-| [`half_pod_base.stl`](generated/half_pod_base.stl) | Flat-bottom half compartment |
-| [`joining_spline_standard.stl`](generated/joining_spline_standard.stl) | Recommended connector for two adjacent pods |
-| [`joining_spline_tight.stl`](generated/joining_spline_tight.stl) | Tighter joining-spline fit |
-| [`joining_spline_loose.stl`](generated/joining_spline_loose.stl) | Looser joining-spline fit |
-| [`finishing_spline_standard.stl`](generated/finishing_spline_standard.stl) | Recommended trim for an exposed channel |
-| [`finishing_spline_tight.stl`](generated/finishing_spline_tight.stl) | Tighter finishing-spline fit |
-| [`finishing_spline_loose.stl`](generated/finishing_spline_loose.stl) | Looser finishing-spline fit |
-| [`spline_fit_test.stl`](generated/spline_fit_test.stl) | Calibration coupon with all three joining fits |
-| [`seven_pod_assembly_preview.stl`](generated/seven_pod_assembly_preview.stl) | Assembled reference model; not intended for printing as one piece |
+| N, NE, SE | Integrated male dovetail rail |
+| S, SW, NW | Female dovetail channel |
 
-The final 1 mm of each spline is intentionally tapered. Insert this narrower end first.
+The upper-half pod supports N, NE and NW; its bottom is always solid. Off edges are uninterrupted walls. The opening height remains 30 mm, interior depth 19.65 mm, wall thickness 2 mm, back 2.4 mm, and total depth 22.05 mm. The half shape retains the original compartment dimensions. Male rails are recessed behind the front face.
 
-## Recommended print settings
+## Editable assembly
 
-- PLA
-- 0.4 mm nozzle
-- 0.20 mm layer height
-- 3 walls/perimeters
-- 4 top and bottom layers
-- 15% gyroid or grid infill
-- Supports off
-- Optional 0.10–0.20 mm elephant-foot compensation
+Across and Tall specify the number of columns and full-pod cells per column; odd columns are staggered by half a pitch. You can remove and restore cells or replace them with upper-half pods. Click a cell in the diagram or a pod in the 3D preview to edit it.
 
-The files are already in their intended orientations. Print pods with their solid backs on the build plate; print splines flat. The short channel closures are handled as bridges and do not need generated support material.
+Neighbors connect automatically. An override on a shared edge changes both sides, while a perimeter edge can be enabled for future expansion. Turning a joint off can produce disconnected groups; export all groups together or choose one group. The generated array is a collection of separate, interlocked solids, never a fused union.
 
-## Calibrate before printing a set
+Flat-bottom fillers occupy the half-height gaps below raised columns. Their floors are trimmed by half the wall gap (0.15 mm at the default settings) to share the full pods' bottom plane. Irregular silhouettes may contain gaps too tall for one half filler; the editor reports these instead of stretching a compartment.
 
-1. Print [`spline_fit_test.stl`](generated/spline_fit_test.stl) with the same material and slicer profile planned for the display.
-2. Keep the three loose splines in order: tight, standard, then loose.
-3. Insert the narrower tapered end into a test channel.
-4. Select the firmest spline that slides fully into place with steady finger pressure and can still be removed without tools.
-5. Print the joining and finishing splines with the matching fit designation.
+The maximum input is 20 × 20, plus applicable base fillers. Check the displayed overall dimensions against your print bed; the generator does not assume a printer size or automatically tile across plates.
 
-Start with the standard version. A full-depth sliding fit amplifies small differences in extrusion flow, so do not force a spline that binds.
+## Fit and printing
 
-## Assembly
+Default calibration starting points are 0.30 mm between pod walls, 0.30 mm normal clearance per mating connector surface, and 0.40 mm between male tips and female front stops. Use matching settings when mixing individually generated pods and assemblies. Supported adjustment ranges are 0.20–0.80 mm wall gap, 0.15–0.50 mm fit, and 0.20–1.00 mm axial clearance.
 
-1. Arrange the pods face-down on a towel with their exterior backs upward.
-2. Add half pods beneath any raised bottom columns.
-3. Bring neighboring pod edges together.
-4. Slide one joining spline, tapered end first, into every shared channel from the rear.
-5. Add finishing splines to any exposed perimeter channels you want closed.
-6. Stand the assembly upright and confirm that the bottom edges sit evenly on the desk.
+Download the calibration ZIPs for 0.20, 0.30 and 0.40 mm connector fits. Each contains three small, filename-labeled STL/3MF pairs and instructions. Print one file at a time to keep the fit samples identified. Separate-fit strips assemble after printing; print-in-place strips start interlocked. Calibrate with your intended printer, material, nozzle and layer profile.
 
-Use one joining spline per shared edge. Finishing splines are cosmetic and protective; they do not connect two pods.
+- Print the solid backs on the build plate, with all parts printed layer by layer.
+- Keep the supplied relative part positions. In a slicer import the 3MF assembly as one object with multiple parts, not independently arranged objects.
+- Keep supports off. Do not apply automatic gap-closing, XY expansion or brims that bridge the joints. Use elephant-foot compensation appropriate to your calibrated setup.
+- Check the sliced layers around the first layer, dovetails and front stops. Model clearances are starting points, not guarantees across materials and printers.
+- After cooling, use the editor's step-through sequence to slide the next outside pod toward its open front (+Z). Assemble in reverse order. Interior pods are not intended to pull out independently.
+- The recessed front stops align the fronts; this is a sliding connection without a snap latch. Physical fit, rigidity and repeated assembly must be checked with your calibration print.
 
-## Regenerating the models
+These integrated connectors are not compatible with older loose joining splines. Keep all pods in the shown orientation; rotating an individual pod in the display changes connector compatibility.
 
-The parametric generator is [`src/honeycomb_display.py`](src/honeycomb_display.py). It exposes the compartment dimensions, depth, wall and back thicknesses, channel geometry, lead-in, and fit clearances through `DisplayParameters` near the top of the file.
+## Export formats
 
-```bash
+STL is a binary mesh with disconnected closed shells and coordinates in millimeters. STL itself has no unit metadata or part hierarchy.
+
+3MF explicitly declares millimeters and stores each pod as a separate mesh component beneath one positioned assembly. It also embeds the configuration and removal order in `Metadata/honeycomb.json`. It is a model file, not a printer-specific slicer project or G-code.
+
+Downloads are unavailable while generation is pending or when collision checks fail. The last generated preview may remain visible during an update. Mesh and pair caches are bounded; old worker results cannot replace a newer configuration.
+
+## Validation and development
+
+```sh
+pnpm test
+pnpm typecheck
+pnpm build
+pnpm validate:models
+python3 scripts/slice-verify.py # macOS with Bambu Studio installed
+python3 scripts/check-exports.py # optional dependencies below
+```
+
+The independent export checker uses Python only for verification. Install its optional dependencies in a virtual environment:
+
+```sh
 python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -r requirements.txt
-python3 src/honeycomb_display.py --output-dir generated
+.venv/bin/python -m pip install -r scripts/requirements-verify.txt
+.venv/bin/python scripts/check-exports.py
 ```
 
-Running the generator rewrites the STL files, the two PNG renderings, and [`verification_report.json`](generated/verification_report.json) from the same parameter set.
+Generate and slice the sample models before running the checker. Python is not needed to launch the editor or download models.
 
-Run the geometry test suite with:
+`validate:models` creates representative STLs, 3MFs, calibration ZIPs and a geometry report under `generated/`. The slicer verifier uses bundled Bambu profiles with PLA, a 0.4 mm nozzle, 0.20 mm layers, three walls, 15% infill and no supports. It does not print or change saved user presets. Temporary slices go under ignored `work/`; its summary is `generated/slicer_report.json`.
 
-```bash
-PYTHONPATH=src python3 -m unittest -v tests/test_geometry.py
-```
+Tests cover all 64 full and 8 half connector masks, mating directions and clearances, floor alignment, layout edits and disconnected groups, 20 × 20 generation, continuous removal collisions, and STL/3MF round trips. Continuous +Z removal is checked using the exact swept volume of the back/rails and the later-starting front stops, rather than a few sampled positions.
 
-## Verification
+`lib/model/` owns types, layout, geometry, worker and export logic. `components/workshop/` owns the preview and diagrams. The app uses the Sites starter and its existing controls, with a local Node runtime. The optional, feature-detected WebMCP interface exposes `read_honeycomb_configuration` and `configure_honeycomb` using the same editor state.
 
-- All printable STLs are watertight, manifold, consistently wound closed volumes in millimeters.
-- Adjacent pods meet without unintended volumetric overlap.
-- Joining and finishing splines fit their modeled channels without body collisions.
-- The spline taper is checked to prevent crossed or twisted end geometry.
-- The complete printable set was successfully sliced in Bambu Studio with a 0.4 mm nozzle, 0.2 mm layers, three walls, 15% infill, and supports disabled.
-- Bambu Studio produced no slicing warnings.
+Digital verification and slicing do not establish physical fit on your printer. Print and test the calibration samples before committing to a large array.
 
-Detailed generated checks are available in [`verification_report.json`](generated/verification_report.json) and [`slicer_verification.json`](generated/slicer_verification.json).
+### Verification completed for this version
+
+All 12 automated tests, type checking, source linting and the production build passed. All 11 representative models imported and sliced successfully. The slicer reported only that the generic model files have no filament colors; no slicing errors occurred.
+
+An independent Python round trip confirms 11 STL/3MF pairs contain matching separate closed bodies. Nominal extrusion envelopes remain separated on seven sampled layers in the two example arrays and three print-in-place calibration fits. The default array retains about 0.296–0.300 mm XY gaps at those layers. See `generated/independent_report.json` for exact measurements. This is a sampled digital toolpath check, not a physical print test.
+
+Browser checks covered connector toggles, full/half selection, shared-edge synchronization, removal/restoration and half substitution, flat fillers, the removal preview, rapid configuration changes, both model downloads, both calibration archives, and valid/invalid WebMCP configuration. The narrow 649 px layout was checked for horizontal overflow. The launcher supports the local bundled runtime on this computer.
+
+The source lint command excludes the untouched generated UI catalog and its mobile hook; it checks the editor and model code. Those starter primitives remain type-checked by TypeScript.
+
+## License
+
+[MIT License](LICENSE). Third-party dependencies retain their own licenses.
+The footer serves the same license from `public/LICENSE.txt`; keep it in sync with `LICENSE`.

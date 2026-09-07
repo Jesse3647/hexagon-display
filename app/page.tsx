@@ -1,0 +1,737 @@
+'use client';
+// oxlint-disable-next-line import/default -- Vite provides the worker constructor.
+import ModelWorker from '@/lib/model/worker?worker';
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Hexagon,
+  Layers3,
+  Download,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Settings2,
+  FlaskConical,
+  LoaderCircle,
+  AlertTriangle,
+  Box,
+  RotateCcw,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Preview } from '@/components/workshop/preview';
+import {
+  ConnectorDiagram,
+  LayoutDiagram,
+} from '@/components/workshop/diagrams';
+import { useModel } from '@/lib/model/use-model';
+import { makeLayout, toggleEdge } from '@/lib/model/layout';
+import {
+  initialConfig,
+  availableEdges,
+  isMale,
+  type Configuration,
+  type Edge,
+  type CellKind,
+} from '@/lib/model/types';
+import { exportSTL, export3MF } from '@/lib/model/export';
+import { registerWorkshopTools } from '@/lib/model/webmcp';
+function download(bytes: Uint8Array, name: string) {
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: name.endsWith('.zip')
+      ? 'application/zip'
+      : 'application/octet-stream',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function Choice({
+  value,
+  onChange,
+  options,
+  label,
+  id,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: [string, string][];
+  label: string;
+  id?: string;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        if (v !== null) onChange(v);
+      }}
+    >
+      <SelectTrigger id={id} className="choice" aria-label={label}>
+        <SelectValue>{options.find(([key]) => key === value)?.[1]}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {options.map(([id, name]) => (
+          <SelectItem key={id} value={id}>
+            {name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+export default function Home() {
+  const [config, setConfig] = useState<Configuration>(initialConfig),
+    [selectedId, setSelected] = useState('single'),
+    [removal, setRemoval] = useState({ key: '', step: 0 }),
+    [exportError, setExportError] = useState(''),
+    [calibrationError, setCalibrationError] = useState(''),
+    [notice, setNotice] = useState(''),
+    [groupChoice, setGroupChoice] = useState({ key: '', value: 'all' }),
+    [calibrating, setCalibrating] = useState(false);
+  const configKey = JSON.stringify(config);
+  const step = removal.key === configKey ? removal.step : 0;
+  const setStep = (next: number | ((previous: number) => number)) =>
+    setRemoval((previous) => ({
+      key: configKey,
+      step:
+        typeof next === 'function'
+          ? next(previous.key === configKey ? previous.step : 0)
+          : next,
+    }));
+  const group = groupChoice.key === configKey ? groupChoice.value : 'all';
+  const setGroup = (value: string) => setGroupChoice({ key: configKey, value });
+  const { result, pending, error } = useModel(config);
+  const layout = useMemo(() => {
+    try {
+      return makeLayout(config);
+    } catch {
+      return null;
+    }
+  }, [config]);
+  const [column, row] = selectedId.split(',').map(Number);
+  const selected =
+    config.mode === 'single'
+      ? 'single'
+      : layout?.pods.some((p) => p.id === selectedId)
+        ? selectedId
+        : /^\d+,\d+$/.test(selectedId) &&
+            column < config.columns &&
+            row < config.rows
+          ? selectedId
+          : '0,0';
+  const pod =
+    layout?.pods.find((p) => p.id === selected) ??
+    (config.mode === 'single' ? layout?.pods[0] : undefined);
+  const valid = !!result && !pending && !error && !result.errors.length;
+  const toolState = useRef({ config, pending, error, result, layout });
+  useEffect(() => {
+    toolState.current = { config, pending, error, result, layout };
+  }, [config, pending, error, result, layout]);
+  const update = (patch: Partial<Configuration>) => {
+    setConfig((c) => ({ ...c, ...patch }));
+    setStep(0);
+    setNotice('');
+  };
+  useEffect(() => {
+    if (notice) {
+      const t = setTimeout(() => setNotice(''), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [notice]);
+  useEffect(
+    () =>
+      registerWorkshopTools(
+        () => toolState.current.config,
+        setConfig,
+        () => {
+          const s = toolState.current;
+          return {
+            pending: s.pending,
+            errors: s.error ? [s.error] : (s.result?.errors ?? []),
+            pods: s.layout?.pods.length ?? 0,
+          };
+        },
+      ),
+    [],
+  );
+  const changeMode = (mode: 'single' | 'assembly') => {
+    update({ mode });
+    setSelected(mode === 'single' ? 'single' : '0,0');
+  };
+  const onEdge = (edge: Edge, on: boolean) => {
+    setConfig((c) => toggleEdge(c, selected, edge, on));
+    setStep(0);
+  };
+  const exportModel = (format: 'stl' | '3mf') => {
+    try {
+      setExportError('');
+      if (!valid || !result)
+        throw new Error('Wait for a valid model before exporting.');
+      const g = group === 'all' ? undefined : Number(group);
+      const bytes =
+        format === 'stl' ? exportSTL(result, g) : export3MF(result, config, g);
+      const suffix =
+        config.mode === 'single'
+          ? `${config.kind}-${pod?.enabled.join('-') || 'closed'}`
+          : `${config.columns}x${config.rows}${g === undefined ? '' : `-group-${g + 1}`}`;
+      download(bytes, `honeycomb-${suffix}.${format}`);
+      setNotice(`${format.toUpperCase()} downloaded`);
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : 'Export failed.');
+    }
+  };
+  const calibration = (separate: boolean) => {
+    setCalibrating(true);
+    setNotice('');
+    setCalibrationError('');
+    const w = new ModelWorker();
+    const timeout = setTimeout(() => {
+      w.terminate();
+      setCalibrating(false);
+      setCalibrationError('Calibration generation timed out. Try again.');
+    }, 30000);
+    w.onmessage = (e) => {
+      clearTimeout(timeout);
+      w.terminate();
+      setCalibrating(false);
+      if (e.data.error) setCalibrationError(e.data.error);
+      else {
+        download(
+          e.data.bytes,
+          `honeycomb-${separate ? 'separate-fit' : 'print-in-place'}-calibration.zip`,
+        );
+        setNotice('Calibration samples downloaded');
+      }
+    };
+    w.onerror = () => {
+      clearTimeout(timeout);
+      w.terminate();
+      setCalibrating(false);
+      setCalibrationError('Could not generate calibration samples. Try again.');
+    };
+    w.postMessage({ id: 1, op: 'calibration', separate, config });
+  };
+  const errors = [
+    error,
+    exportError,
+    ...(!pending ? (result?.errors ?? []) : []),
+  ].filter(Boolean);
+  const cell = config.cells[selected] ?? 'full';
+  return (
+    <main className="workshop">
+      <header className="topbar">
+        <Link href="/" className="brand" aria-label="Honeycomb workshop home">
+          <span className="brand-mark">
+            <Hexagon size={26} />
+          </span>
+          <div>
+            <strong>
+              honeycomb<span> / workshop</span>
+            </strong>
+            <small>MODULAR DISPLAY GENERATOR</small>
+          </div>
+        </Link>
+        <div className="local-status">
+          <span />
+          Local workspace <small>V2</small>
+        </div>
+      </header>
+      <div className="workspace">
+        <aside
+          className="configuration-panel"
+          aria-label="Configuration and exports"
+        >
+          <div className="controls">
+            <div className="panel-title">
+              <h1>Make it yours.</h1>
+              <p>Customize your modular display.</p>
+            </div>
+            <Tabs
+              value={config.mode}
+              onValueChange={(v) => changeMode(v as 'single' | 'assembly')}
+            >
+              <TabsList className="mode-tabs">
+                <TabsTrigger value="single">
+                  <Hexagon size={16} />
+                  Single pod
+                </TabsTrigger>
+                <TabsTrigger value="assembly">
+                  <Layers3 size={16} />
+                  Assembly
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {config.mode === 'single' ? (
+              <section className="control-section">
+                <div className="section-heading">
+                  <span>01</span>
+                  <h2>Pod shape</h2>
+                </div>
+                <div className="shape-options">
+                  <Button
+                    variant={config.kind === 'full' ? 'default' : 'outline'}
+                    onClick={() => update({ kind: 'full' })}
+                  >
+                    <Hexagon size={22} />
+                    Full pod
+                  </Button>
+                  <Button
+                    variant={config.kind === 'half' ? 'default' : 'outline'}
+                    onClick={() => update({ kind: 'half' })}
+                  >
+                    <Box size={22} />
+                    Half pod
+                  </Button>
+                </div>
+                <p className="hint">
+                  {config.kind === 'full'
+                    ? '30 mm opening'
+                    : '17 mm exterior height'}{' '}
+                  · 19.65 mm interior depth
+                </p>
+              </section>
+            ) : (
+              <section className="control-section">
+                <div className="section-heading">
+                  <span>01</span>
+                  <h2>Your layout</h2>
+                  <small>{layout?.pods.length ?? 0} pods</small>
+                </div>
+                <div className="grid-inputs">
+                  <label htmlFor="pods-across">
+                    Across
+                    <Input
+                      id="pods-across"
+                      aria-label="Pods across"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={config.columns}
+                      onChange={(e) =>
+                        update({
+                          columns: Math.max(
+                            1,
+                            Math.min(
+                              20,
+                              Math.round(Number(e.target.value) || 1),
+                            ),
+                          ),
+                        })
+                      }
+                    />
+                  </label>
+                  <label htmlFor="pods-tall">
+                    Tall
+                    <Input
+                      id="pods-tall"
+                      aria-label="Pods tall per column"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={config.rows}
+                      onChange={(e) =>
+                        update({
+                          rows: Math.max(
+                            1,
+                            Math.min(
+                              20,
+                              Math.round(Number(e.target.value) || 1),
+                            ),
+                          ),
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+                <LayoutDiagram
+                  config={config}
+                  layout={layout}
+                  selected={selected}
+                  onSelect={(id) => {
+                    setSelected(id);
+                    setStep(0);
+                  }}
+                />
+                <label className="switch-row" htmlFor="flat-base">
+                  Add flat-bottom fillers
+                  <Switch
+                    id="flat-base"
+                    checked={config.flatBase}
+                    onCheckedChange={(flatBase) => update({ flatBase })}
+                  />
+                </label>
+                {!pod?.filler && (
+                  <div className="cell-editor">
+                    <label htmlFor="cell-kind">
+                      Cell{' '}
+                      {selected
+                        .split(',')
+                        .map((n) => Number(n) + 1)
+                        .join('.')}
+                    </label>
+                    <Choice
+                      id="cell-kind"
+                      label="Selected cell shape"
+                      value={cell}
+                      onChange={(v) =>
+                        update({
+                          cells: { ...config.cells, [selected]: v as CellKind },
+                        })
+                      }
+                      options={[
+                        ['full', 'Full pod'],
+                        ['half', 'Half pod'],
+                        ['empty', 'Remove pod'],
+                      ]}
+                    />
+                  </div>
+                )}
+                {pod?.filler && (
+                  <p className="hint">
+                    Automatic half filler · floor aligned to the base
+                  </p>
+                )}
+              </section>
+            )}
+            <section className="control-section connector-section">
+              <div className="section-heading">
+                <span>02</span>
+                <h2>Connectors</h2>
+                <small>{pod?.enabled.length ?? 0} on</small>
+              </div>
+              {pod ? (
+                <>
+                  <ConnectorDiagram pod={pod} onToggle={onEdge} />
+                  <div className="connector-legend">
+                    <span>
+                      <i className="male-dot" />
+                      Male
+                    </span>
+                    <span>
+                      <i className="female-dot" />
+                      Female
+                    </span>
+                    <span>
+                      <i className="closed-dot" />
+                      Solid wall
+                    </span>
+                  </div>
+                  <div className="edge-list">
+                    {availableEdges(pod.kind).map((edge) => (
+                      <label className="edge-row" key={edge}>
+                        <span
+                          className={`edge-name ${isMale(edge) ? 'male' : 'female'}`}
+                        >
+                          {edge}
+                        </span>
+                        <span>
+                          {isMale(edge) ? 'Male rail' : 'Female channel'}
+                        </span>
+                        <Switch
+                          aria-label={`${edge} connector`}
+                          checked={pod.enabled.includes(edge)}
+                          onCheckedChange={(on) => onEdge(edge, on)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <p className="hint">
+                    Off means a clean, continuous wall.
+                    {config.mode === 'assembly'
+                      ? ' Shared edges update both pods.'
+                      : ''}
+                  </p>
+                  {config.mode === 'single' && (
+                    <Button
+                      variant="ghost"
+                      className="reset-edges"
+                      onClick={() => update({ enabled: [] })}
+                    >
+                      Close every edge
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <p className="hint">
+                  Select a pod to customize its connectors.
+                </p>
+              )}
+            </section>
+            <details className="fit-section">
+              <summary>
+                <Settings2 size={16} />
+                <span>Fit & clearances</span>
+                <small>mm</small>
+              </summary>
+              <p className="hint">
+                Starting points for calibration. Use matching settings for pods
+                that connect.
+              </p>
+              {(
+                [
+                  ['wallGap', 'Wall gap', 0.2, 0.8],
+                  ['fit', 'Connector clearance', 0.15, 0.5],
+                  ['axial', 'Front-stop clearance', 0.2, 1],
+                ] as const
+              ).map(([key, label, min, max]) => (
+                <div className="fit-control" key={key}>
+                  <label>
+                    {label}
+                    <strong>{config.clearances[key].toFixed(2)}</strong>
+                  </label>
+                  <Slider
+                    aria-label={label}
+                    min={min}
+                    max={max}
+                    step={0.05}
+                    value={[config.clearances[key]]}
+                    onValueChange={(values) =>
+                      update({
+                        clearances: {
+                          ...config.clearances,
+                          [key]: Number(
+                            (Array.isArray(values)
+                              ? values[0]
+                              : values
+                            ).toFixed(2),
+                          ),
+                        },
+                      })
+                    }
+                  />
+                </div>
+              ))}
+              <p className="hint">
+                Connector clearance is measured per mating surface.
+              </p>
+            </details>
+          </div>
+          <section className="output-controls" aria-label="Model validation">
+            {errors.length > 0 && (
+              <div className="feedback error" role="alert">
+                {errors.map((e, i) => (
+                  <p key={i}>{e}</p>
+                ))}
+              </div>
+            )}
+            {layout?.warnings.map((w) => (
+              <p className="feedback" key={w}>
+                {w}
+              </p>
+            ))}
+          </section>
+        </aside>
+        <section className="canvas-panel" aria-label="3D preview">
+          <div className="canvas-heading">
+            <span className="eyebrow">
+              {config.mode === 'single'
+                ? 'SINGLE POD'
+                : 'PRINT-IN-PLACE ASSEMBLY'}
+            </span>
+            <output className={`mesh-status ${errors.length ? 'invalid' : ''}`}>
+              {pending ? (
+                <>
+                  <LoaderCircle className="spin" size={15} />
+                  Updating
+                </>
+              ) : errors.length ? (
+                <>
+                  <AlertTriangle size={15} />
+                  Needs attention
+                </>
+              ) : (
+                <>
+                  <Check size={15} />
+                  Geometry checked
+                </>
+              )}
+            </output>
+          </div>
+          <Preview
+            result={result}
+            selected={selected}
+            step={step}
+            onSelect={(id) => {
+              setSelected(id);
+              setStep(0);
+            }}
+          />
+          <div className="dimension-bar">
+            {['WIDTH', 'HEIGHT', 'DEPTH'].map((label, i) => (
+              <div key={label}>
+                <small>{label}</small>
+                <strong>
+                  {result?.dimensions[i].toFixed(2) ?? '—'}
+                  <span> mm</span>
+                </strong>
+              </div>
+            ))}
+            <div className="body-count">
+              <small>PRINTABLE BODIES</small>
+              <strong>{result?.parts.length ?? '—'}</strong>
+            </div>
+          </div>
+          <div className="removal-panel">
+            <div className="export-actions">
+              {(layout?.groups.length ?? 0) > 1 && (
+                <Choice
+                  label="Export group"
+                  value={group}
+                  onChange={setGroup}
+                  options={[
+                    ['all', 'All groups'],
+                    ...layout!.groups.map((ids, i): [string, string] => [
+                      String(i),
+                      `Group ${i + 1} · ${ids.length} pods`,
+                    ]),
+                  ]}
+                />
+              )}
+              <div>
+                <Button
+                  className="stl-button"
+                  variant="outline"
+                  disabled={!valid}
+                  onClick={() => exportModel('stl')}
+                >
+                  <Download size={16} />
+                  STL
+                </Button>
+                <Button
+                  className="mf-button"
+                  disabled={!valid}
+                  onClick={() => exportModel('3mf')}
+                >
+                  <Download size={16} />
+                  Export 3MF
+                </Button>
+              </div>
+            </div>
+            {config.mode === 'assembly' && (
+              <div className="removal-controls">
+                <Button
+                  variant="outline"
+                  disabled={!valid || step === 0}
+                  aria-label="Previous removal step"
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                >
+                  <ChevronLeft />
+                </Button>
+                <span>
+                  {step} / {result?.parts.length ?? 0}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={!valid || step >= (result?.parts.length ?? 0)}
+                  aria-label="Next removal step"
+                  onClick={() => setStep((s) => s + 1)}
+                >
+                  <ChevronRight />
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={step === 0}
+                  aria-label="Reset assembly"
+                  onClick={() => setStep(0)}
+                >
+                  <RotateCcw />
+                </Button>
+              </div>
+            )}
+            <Dialog>
+              <DialogTrigger
+                render={
+                  <Button variant="outline" className="calibration-trigger" />
+                }
+              >
+                <FlaskConical size={16} />
+                Calibrate fit
+              </DialogTrigger>
+              <DialogContent className="calibration-dialog">
+                <DialogHeader>
+                  <DialogTitle>Calibrate your connector fit</DialogTitle>
+                  <DialogDescription>
+                    Print connector samples at 0.20, 0.30 and 0.40 mm clearance
+                    with your intended material and settings. Choose the
+                    tightest fit that slides freely.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="calibration-actions">
+                  <Button
+                    variant="outline"
+                    disabled={calibrating}
+                    onClick={() => calibration(false)}
+                  >
+                    <Download />
+                    Print-in-place samples
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={calibrating}
+                    onClick={() => calibration(true)}
+                  >
+                    <Download />
+                    Separate-fit samples
+                  </Button>
+                </div>
+                <p className="calibration-note">
+                  Each ZIP includes labeled STL and 3MF files and printing
+                  instructions. Geometry checks do not replace a physical fit
+                  test.
+                </p>
+                <output className="calibration-status">
+                  {calibrating ? (
+                    <>
+                      <LoaderCircle className="spin" size={16} /> Preparing
+                      samples…
+                    </>
+                  ) : notice === 'Calibration samples downloaded' ? (
+                    notice
+                  ) : null}
+                </output>
+                {calibrationError && (
+                  <p className="feedback error" role="alert">
+                    {calibrationError}
+                  </p>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        </section>
+      </div>
+      <footer className="footer">
+        <a href="/LICENSE.txt" target="_blank" rel="noreferrer">
+          Open source · MIT License
+        </a>
+        <span>© 2026 Jesse Martin</span>
+      </footer>
+      {notice && (
+        <output className="download-notice">
+          <Check size={17} />
+          {notice}
+        </output>
+      )}
+    </main>
+  );
+}

@@ -1,0 +1,5 @@
+# Optional independent export verification; not needed to run the app.
+networkx==3.2.1
+numpy==2.0.2
+shapely==2.0.7
+trimesh==4.12.2

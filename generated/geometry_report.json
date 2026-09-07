@@ -1,0 +1,92 @@
+{
+  "units": "millimeters",
+  "physicalValidation": "Not performed. Print calibration samples on your intended printer and material.",
+  "models": {
+    "closed_pod": {
+      "bodies": 1,
+      "triangles": 66,
+      "dimensions": [
+        39.25981830060482,
+        34,
+        22.05
+      ],
+      "minGap": null,
+      "removalOrder": [
+        "single"
+      ],
+      "errors": []
+    },
+    "all_connectors": {
+      "bodies": 1,
+      "triangles": 246,
+      "dimensions": [
+        39.25981830060482,
+        35.149999998509884,
+        22.05
+      ],
+      "minGap": null,
+      "removalOrder": [
+        "single"
+      ],
+      "errors": []
+    },
+    "half_pod": {
+      "bodies": 1,
+      "triangles": 134,
+      "dimensions": [
+        39.25981830060482,
+        18.149999998509884,
+        22.05
+      ],
+      "minGap": null,
+      "removalOrder": [
+        "single"
+      ],
+      "errors": []
+    },
+    "assembly_3x3": {
+      "bodies": 10,
+      "triangles": 1762,
+      "dimensions": [
+        98.6691610002173,
+        119.75000000149012,
+        22.05
+      ],
+      "minGap": 0.2999999971260525,
+      "removalOrder": [
+        "2,2",
+        "2,1",
+        "2,0",
+        "1,2",
+        "1,1",
+        "1,0",
+        "base-1",
+        "0,2",
+        "0,1",
+        "0,0"
+      ],
+      "errors": []
+    },
+    "edited_assembly": {
+      "bodies": 8,
+      "triangles": 1102,
+      "dimensions": [
+        98.6691610002173,
+        119.75,
+        22.05
+      ],
+      "minGap": 0.2999999971260525,
+      "removalOrder": [
+        "2,2",
+        "2,1",
+        "2,0",
+        "1,2",
+        "1,0",
+        "0,2",
+        "0,1",
+        "0,0"
+      ],
+      "errors": []
+    }
+  }
+}
