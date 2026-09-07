@@ -1,0 +1,29 @@
+{
+  "application": "Bambu Studio 02.08.02.61",
+  "result": "Success",
+  "warnings": [],
+  "profile": {
+    "material": "Generic PLA",
+    "nozzle_mm": 0.4,
+    "layer_height_mm": 0.2,
+    "wall_loops": 3,
+    "sparse_infill_percent": 15,
+    "supports_enabled": false
+  },
+  "printable_parts_sliced": [
+    "hex_pod.stl",
+    "half_pod_base.stl",
+    "joining_spline_tight.stl",
+    "joining_spline_standard.stl",
+    "joining_spline_loose.stl",
+    "finishing_spline_tight.stl",
+    "finishing_spline_standard.stl",
+    "finishing_spline_loose.stl",
+    "spline_fit_test.stl"
+  ],
+  "notes": [
+    "All objects remained in their supplied print orientation with minimum Z at 0 mm.",
+    "The slice completed with no warning message and generated no support material.",
+    "The pod channel closures were classified as short bridges."
+  ]
+}
