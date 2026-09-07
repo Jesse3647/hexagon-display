@@ -1,7 +1,9 @@
 import * as React from 'react';
 
+/** Starter component breakpoint (768px); independent of the editor CSS layout threshold (760px). */
 const MOBILE_BREAKPOINT = 768;
 
+/** Tracks the starter mobile breakpoint; returns false during SSR and before the first client effect. */
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
     undefined,

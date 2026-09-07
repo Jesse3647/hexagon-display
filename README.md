@@ -111,6 +111,8 @@ Downloads are unavailable while generation is pending or when collision checks f
 
 ## Validation and development
 
+Source comments describe geometry conventions, component props, worker lifecycle and export contracts. See [AGENTS.md](AGENTS.md) for the documentation standards required with future changes.
+
 Node serves the editor. Manifold WebAssembly generates printable geometry in a browser worker; Three.js displays the same meshes used by both exporters.
 
 ```sh

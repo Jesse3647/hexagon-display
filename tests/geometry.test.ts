@@ -1,3 +1,8 @@
+/**
+ * Real-Manifold regression checks for printable bodies and continuous removal.
+ * One shared engine is disposed after the suite. Each temporary WASM result is
+ * deleted at its point of use; cached variants remain owned by the engine.
+ */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GeometryEngine } from '../lib/model/geometry';
@@ -28,6 +33,8 @@ void test('all 64 full and 8 half combinations form one oriented closed solid', 
       const v = engine.variant(p, initialConfig().clearances);
       assert.equal(v.solid.status(), 'NoError');
       assert.ok(v.volume > 0);
+      // Each undirected edge must appear with balanced opposing orientations.
+      // Paired with Manifold status and positive volume, this catches winding regressions.
       const edgeMap = new Map<string, number>();
       const f = v.mesh.indices;
       for (let j = 0; j < f.length; j += 3)

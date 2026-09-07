@@ -10,15 +10,22 @@ import {
   type Layout,
 } from '@/lib/model/types';
 import { cellId, cellPosition, normal } from '@/lib/model/layout';
+/**
+ * Builds an SVG polygon from a model radius/half-height. SVG Y increases downward,
+ * so upper-half profiles use negative Y. These are controls, not printable meshes.
+ */
 const points = (r: number, h: number, half = false) =>
   half
     ? `${r},0 ${r / 2},${-h} ${-r / 2},${-h} ${-r},0`
     : `${r},0 ${r / 2},${-h} ${-r / 2},${-h} ${-r},0 ${-r / 2},${h} ${r / 2},${h}`;
+/** Front-view edge controls with matching pointer and Enter/Space behavior. */
 export function ConnectorDiagram({
   pod,
   onToggle,
 }: {
+  /** Selected derived pod; its enabled edges determine pressed states. */
   pod: Pod;
+  /** Requests an edge change; the owner synchronizes shared neighbor overrides. */
   onToggle: (edge: Edge, on: boolean) => void;
 }) {
   return (
@@ -94,17 +101,27 @@ export function ConnectorDiagram({
     </svg>
   );
 }
+/**
+ * Selectable front-view grid, including empty cells and auto-generated fillers.
+ * Draws missing cells from config rather than layout so deleted pods can be restored.
+ */
 export function LayoutDiagram({
   config,
   layout,
   selected,
   onSelect,
 }: {
+  /** Grid size, wall spacing and sparse shape edits. */
   config: Configuration;
+  /** Derived pods for filler placement; null while input cannot form a layout. */
   layout: Layout | null;
+  /** Stable cell/filler ID to highlight, not a display row number. */
   selected: string;
+  /** Selects a cell without changing its shape or connector settings. */
   onSelect: (id: string) => void;
 }) {
+  // Translate model positions into SVG by negating Y only at the drawing boundary.
+  // Labels use one-based column.row notation while stored IDs remain zero-based.
   const pitch = DIM.height + config.clearances.wallGap,
     width = (((config.columns - 1) * Math.sqrt(3)) / 2) * pitch + 45,
     height = (config.rows - 0.5) * pitch + 45;

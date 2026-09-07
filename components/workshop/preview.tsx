@@ -5,18 +5,30 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Scan, Move3D } from 'lucide-react';
 import { DIM, type ModelResult } from '@/lib/model/types';
+/** Camera presets change the viewpoint, never the model coordinate system. */
 type View = 'front' | 'rear' | 'perspective';
+/**
+ * Displays the actual export meshes with orbit, picking and removal animation.
+ * React owns inputs; the effect owns GPU resources and the animation loop. Rebuild
+ * only when result changes, keeping selection/step updates out of mesh construction.
+ */
 export function Preview({
   result,
   selected,
   step,
   onSelect,
 }: {
+  /** Latest mesh snapshot; null before the first successful generation. */
   result: ModelResult | null;
+  /** Stable pod ID to highlight. */
   selected: string;
+  /** 0 shows all pods; n lifts order[n-1] and hides previously removed pods. */
   step: number;
+  /** Called for a clicked visible pod; orbit drags do not select. */
   onSelect: (id: string) => void;
 }) {
+  // Keep the mutable Three.js controller out of React state. The callback ref
+  // lets ray picking use the current handler without rebuilding GPU resources.
   const host = useRef<HTMLDivElement>(null),
     controller = useRef<{
       view: (view: View) => void;
@@ -66,6 +78,8 @@ export function Preview({
       maxX = Math.max(...result.parts.map((p) => p.x + p.bounds.max[0]));
     const minY = Math.min(...result.parts.map((p) => p.y + p.bounds.min[1])),
       maxY = Math.max(...result.parts.map((p) => p.y + p.bounds.max[1]));
+    // Center the assembly for the camera only. Export placement remains in result
+    // and must not inherit this display-only translation.
     root.position.set(-(minX + maxX) / 2, -(minY + maxY) / 2, 0);
     const records: {
       id: string;
@@ -130,6 +144,7 @@ export function Preview({
     orbit.minZoom = 0.2;
     orbit.maxZoom = 12;
     const size = Math.max(result.dimensions[0], result.dimensions[1], 45);
+    /** Fits the orthographic frustum to this container, including sidebar/window resizing. */
     const frame = () => {
       const w = element.clientWidth,
         h = element.clientHeight,
@@ -146,6 +161,7 @@ export function Preview({
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
     };
+    /** Restores zoom and camera pose; rear view looks toward the backs at negative Z. */
     const view = (v: View) => {
       camera.zoom = 1;
       orbit.target.set(0, 0, DIM.depth / 2);
@@ -171,9 +187,11 @@ export function Preview({
     const ray = new THREE.Raycaster(),
       mouse = new THREE.Vector2();
     let down = [0, 0];
+    /** Records the start of a gesture so orbit drags can be distinguished from clicks. */
     const pointerDown = (e: PointerEvent) => {
       down = [e.clientX, e.clientY];
     };
+    /** Converts CSS-pixel pointer coordinates to normalized device coordinates for ray picking. */
     const pointerUp = (e: PointerEvent) => {
       if (Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
       const box = renderer.domElement.getBoundingClientRect();
@@ -191,6 +209,7 @@ export function Preview({
     renderer.domElement.addEventListener('pointerdown', pointerDown);
     renderer.domElement.addEventListener('pointerup', pointerUp);
     let animation = 0;
+    /** Animates display-only +Z removal offsets; never modifies printable mesh arrays. */
     const tick = () => {
       for (const r of records) {
         const lifted = state.step > 0 && r.index === state.step - 1;
@@ -208,6 +227,8 @@ export function Preview({
     };
     tick();
     return () => {
+      // Each result replacement/unmount releases all listeners, GPU objects and
+      // observers. Cached WASM geometry belongs to the worker, not this component.
       cancelAnimationFrame(animation);
       controller.current = null;
       resize.disconnect();

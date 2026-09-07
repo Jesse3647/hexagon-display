@@ -7,22 +7,27 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { XIcon } from 'lucide-react';
 
+/** Accessible modal root; Base UI owns focus trapping, Escape dismissal and trigger focus restoration. */
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
+/** Opens its nearest Dialog; render composes a styled Button without nesting buttons. */
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
+/** Mounts modal UI outside clipped/scrolling editor panels. */
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
+/** Dismisses the owning dialog while preserving Base UI focus-return behavior. */
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
+/** Fixed backdrop placed below the popup but above the editor. */
 function DialogOverlay({
   className,
   ...props
@@ -39,6 +44,7 @@ function DialogOverlay({
   );
 }
 
+/** Portaled popup with optional accessible close button; forwards Base UI popup/focus props. */
 function DialogContent({
   className,
   children,
@@ -79,6 +85,7 @@ function DialogContent({
   );
 }
 
+/** Groups the accessible title and description with consistent spacing. */
 function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -89,6 +96,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
+/** Optional action area; showCloseButton adds a standard dismissal action. */
 function DialogFooter({
   className,
   showCloseButton = false,
@@ -116,6 +124,7 @@ function DialogFooter({
   );
 }
 
+/** Supplies the modal's accessible name through the dialog primitive. */
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
@@ -129,6 +138,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   );
 }
 
+/** Associates explanatory text with the owning modal for assistive technology. */
 function DialogDescription({
   className,
   ...props

@@ -1,3 +1,8 @@
+/**
+ * Round-trip/export contract tests using real generated meshes. STL is read by
+ * Three.js; 3MF package structure, transforms and indices are independently inspected.
+ * These checks do not replace importing/slicing files in a target slicer.
+ */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { unzipSync, strFromU8 } from 'fflate';

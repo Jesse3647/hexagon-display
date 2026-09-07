@@ -1,3 +1,6 @@
+/* Editor layout: desktop is a viewport-height grid with an independently scrolling
+   configuration column. Mobile returns to document flow. Popup dialogs are portaled
+   outside that grid, so use dialog-specific selectors rather than sidebar ancestry. */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -941,6 +944,8 @@ svg {
 @media (min-width: 761px) {
   .workshop {
     display: grid;
+    /* The middle track must shrink below content height or the sidebar expands
+       the document and scrolls the preview away. Child min-height: 0 is intentional. */
     grid-template-rows: auto minmax(0, 1fr) auto;
     height: 100dvh;
     overflow: hidden;

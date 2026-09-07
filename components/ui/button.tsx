@@ -40,6 +40,7 @@ const buttonVariants = cva(
   },
 );
 
+/** Styled Base UI button. Forwards native/button props and supports render composition for dialog triggers. */
 function Button({
   className,
   variant = 'default',

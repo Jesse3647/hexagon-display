@@ -1,12 +1,28 @@
 import { validateConfig, type Configuration } from './types';
+/** Minimal optional browser tool contract, kept local so the editor needs no WebMCP runtime dependency. */
 interface Tool {
+  /** Stable machine-facing operation name. */
   name: string;
+  /** Human-readable operation label. */
   title: string;
+  /** Explains visible effects and limitations to callers. */
   description: string;
+  /** JSON Schema describing accepted input; execution still validates values. */
   inputSchema: object;
+  /** Tool-discovery hints; they do not bypass runtime validation or user permissions. */
   annotations: { readOnlyHint: boolean; untrustedContentHint: boolean };
+  /** Runs against the live editor; may return a result or a promise. */
   execute: (input: unknown) => unknown;
 }
+/**
+ * Registers read/configure tools when the browser exposes document.modelContext.
+ * @param read Returns the latest configuration; use a ref to avoid a stale closure.
+ * @param write Replaces editor configuration after runtime validation and cloning.
+ * @param status Returns current generation status without waiting for it to finish.
+ * @returns Cleanup callback that aborts registrations, or undefined when unsupported.
+ * Registration failure must not prevent normal use of the editor. Configuring
+ * changes visible state only; it does not download, publish, slice or print.
+ */
 export function registerWorkshopTools(
   read: () => Configuration,
   write: (c: Configuration) => void,
@@ -24,6 +40,7 @@ export function registerWorkshopTools(
   ).modelContext;
   if (!context?.registerTool) return;
   const lifecycle = new AbortController();
+  /** Isolates sync and async capability failures from ordinary editor operation. */
   const register = (tool: Tool) => {
     try {
       void Promise.resolve(
@@ -71,6 +88,8 @@ export function registerWorkshopTools(
       const errors = validateConfig(config);
       if (errors.length) throw new Error(errors.join(' '));
       write(structuredClone(config));
+      // Give React a chance to render the change; two frames do not imply the
+      // worker finished. Callers must read status separately to observe completion.
       await new Promise<void>((resolve) =>
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       );

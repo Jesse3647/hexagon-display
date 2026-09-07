@@ -2,6 +2,8 @@
 # Double-click on macOS, or run ./start-local.command from a terminal.
 set -e
 cd "${0:A:h}"
+# Optional Codex runtime fallback; ordinary Node/pnpm installations take priority.
+# Resolve the project from the launcher path so Finder and terminal starts agree.
 BUNDLE="$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies"
 if ! command -v node >/dev/null 2>&1 && [[ -x "$BUNDLE/node/bin/node" ]]; then
   export PATH="$BUNDLE/node/bin:$PATH"

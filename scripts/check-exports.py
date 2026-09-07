@@ -1,5 +1,14 @@
-"""Independent mesh round trips and extrusion-envelope checks of sampled layers.
-Install scripts/requirements-verify.txt first. Slice models before this script.
+"""Independently verify exported bodies and selected layers of Bambu toolpaths.
+
+Run from the repository root with scripts/requirements-verify.txt installed, after
+validate-models.ts and slice-verify.py. Reads generated/*.stl and matching 3MFs,
+plus work/slicing/<sample>/plate_1.gcode and sliced.3mf. Overwrites
+generated/independent_report.json and exits nonzero on a failed check.
+
+All coordinates are millimeters. Cross-sections and line-width buffers test
+nominal separation on seven layers, not continuous Z coverage or physical print
+release. Unsupported extruding arcs in inspected layers cause failure rather
+than being accepted as straight-line evidence.
 """
 from pathlib import Path
 import json, re, sys, zipfile, xml.etree.ElementTree as ET
@@ -12,6 +21,8 @@ root=Path(__file__).resolve().parents[1]
 models=root/'generated'
 report={'mesh_checks':{},'sampled_toolpath_checks':{},'physical_validation':False}
 ns={'m':'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'}
+# Compare separately loaded STL shells against positioned 3MF components.
+# Counting build items alone would mistake the parent assembly for one fused pod.
 for file in sorted(models.glob('*.stl')):
     mesh=trimesh.load_mesh(file,process=True)
     parts=mesh.split(only_watertight=False)
@@ -35,6 +46,8 @@ for file in sorted(models.glob('*.stl')):
         agreement=np.allclose(mesh.bounds,joined.bounds,atol=1e-4) and abs(mesh.volume-joined.volume)<.01
     report['mesh_checks'][file.stem]={'success':bool(checked and agreement and len(parts)==len(posed)),'closed_bodies':len(parts),'stl_3mf_agree':bool(agreement),'minimum_z':float(mesh.bounds[0,2])}
 
+# Sample the first layer, back, mid-depth, rail end and front-stop region.
+# This selection supplements the exact solid sweep checks; it is not exhaustive.
 samples={.2,2.4,10.,19.8,20.2,20.6,22.}
 for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.30','calibration_in_place_0.40']:
     file=root/'work/slicing'/name/'plate_1.gcode'
@@ -43,6 +56,13 @@ for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calib
         tree=ET.fromstring(archive.read('3D/3dmodel.model'))
         item=tree.find('m:build/m:item',ns)
         def transform(text):
+            """Convert a 12-number 3MF transform string into a homogeneous 4x4 matrix.
+
+            Args:
+                text: Space-separated 3MF affine transform, translation last.
+            Returns:
+                NumPy matrix mapping local millimeter coordinates into its parent.
+            """
             matrix=np.eye(4);matrix[:3,:]=np.array(list(map(float,text.split()))).reshape(4,3).T;return matrix
         build=transform(item.attrib['transform'])
         bodies=[]
@@ -56,6 +76,8 @@ for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calib
     code=file.read_text()
     offsets=re.search(r'; extruder_offset = ([^\n]+)',code)
     offset=np.array(list(map(float,offsets[1].split(';')[0].split('x')))) if offsets else np.zeros(2)
+    # Track relative/absolute extrusion and G92 resets so travel/retraction moves
+    # do not contribute fake material bridges between separate pod bodies.
     paths={};x=y=0.;obj=None;z=0.;width=.4;feature='';relative=True;last_e=0.;arcs=0
     for line in file.read_text().splitlines():
         if line.startswith('; Z_HEIGHT:'):z=round(float(line.split(':')[1]),2);obj=None
@@ -81,6 +103,8 @@ for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calib
         all_segments=[segment for (z,_),segments in paths.items() if z==height for segment in segments]
         envelope=unary_union(all_segments)
         islands=list(envelope.geoms) if envelope.geom_type=='MultiPolygon' else [envelope]
+        # Bambu may label the entire assembly with one OBJECT_ID. Instead, find
+        # a material witness for each transformed pod and require distinct islands.
         matched=[];seeds=[];errors=[]
         for i,body in enumerate(bodies):
             section=trimesh.intersections.mesh_plane(body,plane_origin=[0,0,height-.1],plane_normal=[0,0,1])
@@ -89,6 +113,8 @@ for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calib
             for segment in section:
                 a,b=[tuple(np.round(point[:2]-offset,6)) for point in segment]
                 if a!=b:graph.add_edge(a,b)
+            # Toggle nested closed contours (outer wall minus opening) with XOR,
+            # then choose a point inside material rather than inside a compartment.
             filled=Polygon()
             for loop in graphlib.cycle_basis(graph):
                 polygon=Polygon(loop)

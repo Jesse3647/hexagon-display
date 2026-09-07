@@ -10,6 +10,15 @@ import {
 } from './types';
 import { GeometryEngine } from './geometry';
 import { exportSTL, export3MF } from './export';
+/**
+ * Crops a validated north/south pod joint into two small full-depth fit strips.
+ * @param engine Shared engine; borrowed variants are not deleted by this function.
+ * @param clearances Wall, connector and front-stop spacings to test (mm).
+ * @param separate True offsets the second strip by 20 mm in X; false keeps them interlocked.
+ * @returns Export-compatible sample config/result with cropped mesh coordinates baked in.
+ * Inherited gap/timing fields describe the source pair, not a new crop validation pass.
+ * @throws If the source pair is invalid or cropping fails to produce material.
+ */
 export function makeCalibration(
   engine: GeometryEngine,
   clearances: Clearances,
@@ -24,6 +33,8 @@ export function makeCalibration(
   };
   const original = engine.generate(config);
   if (original.errors.length) throw new Error(original.errors.join(' '));
+  // Keep only the shared horizontal edge around Y=17, including the back,
+  // full rail depth and front stop. A shallow coupon would miss axial binding.
   const baseBox = engine.api.Manifold.cube([
     14,
     8 + clearances.wallGap,
@@ -51,6 +62,8 @@ export function makeCalibration(
         positions,
         indices: new Uint32Array(raw.triVerts),
       };
+      // The crop translation is already baked into these vertices, so reset
+      // placement to zero to avoid applying the original pod offset a second time.
       parts.push({
         ...p,
         x: 0,
@@ -84,6 +97,13 @@ export function makeCalibration(
     },
   };
 }
+/**
+ * Builds labeled STL/3MF samples at fit clearances 0.20, 0.30 and 0.40 mm.
+ * @param engine Geometry cache shared across the three samples.
+ * @param config Supplies wallGap and axial clearance; its fit value is replaced per sample.
+ * @param separate Selects separately printed strips or pre-interlocked strips.
+ * @returns ZIP bytes including printing instructions; performs no download itself.
+ */
 export function calibrationZip(
   engine: GeometryEngine,
   config: Configuration,

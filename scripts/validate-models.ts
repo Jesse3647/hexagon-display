@@ -1,3 +1,9 @@
+/**
+ * Generate representative STL/3MF pairs, three-fit calibration ZIPs and a report.
+ * Run from the repository root: pnpm validate:models [optional-output-directory].
+ * The default is ./generated; matching files are overwritten. This runs digital
+ * geometry checks only. Bambu slicing and independent round trips are separate scripts.
+ */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { GeometryEngine } from '../lib/model/geometry';
@@ -14,6 +20,8 @@ const report: Record<string, unknown> = {
   models: {},
 };
 try {
+  // Include the closed/full/half extremes and two layouts that exercise fillers,
+  // holes and half substitutions. Exhaustive connector masks belong in the tests.
   const cases: Record<string, Configuration> = {
     closed_pod: initialConfig(),
     all_connectors: { ...initialConfig(), enabled: [...EDGES] },
@@ -42,6 +50,8 @@ try {
       errors: result.errors,
     };
   }
+  // Save individual calibration files as well as ZIPs so the slicer verifier
+  // can inspect every clearance without parsing archive instructions.
   for (const separate of [false, true]) {
     await writeFile(
       resolve(

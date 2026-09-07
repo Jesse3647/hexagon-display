@@ -10,9 +10,13 @@ import {
   type Layout,
   type Pod,
 } from './types';
+/** Encodes zero-based column/row indices for sparse edits and stable UI selection. */
 export const cellId = (column: number, row: number) => `${column},${row}`;
+/** Identifies an exposed edge; used only when no compatible neighbor is present. */
 export const edgeOverrideKey = (id: string, edge: Edge) => `${id}:${edge}`;
+/** Canonical joint key independent of which neighboring pod was clicked first. */
 export const pairKey = (a: string, b: string) => [a, b].sort().join('|');
+/** Returns the outward unit XY normal in front-view coordinates; snaps tiny trig residuals to zero. */
 export const normal = (edge: Edge): [number, number] => {
   const angle = ((EDGES.indexOf(edge) * 60 + 30) * Math.PI) / 180;
   return [
@@ -20,6 +24,13 @@ export const normal = (edge: Edge): [number, number] => {
     Math.abs(Math.sin(angle)) < 1e-10 ? 0 : Math.sin(angle),
   ];
 };
+/**
+ * Places flat-top hexagons in columns staggered upward on odd column indices.
+ * @param column Zero-based column index.
+ * @param row Zero-based row index, increasing upward in model space.
+ * @param gap Exterior wall separation in mm; included in both grid pitches.
+ * @returns Local-origin translation [x, y] in assembly millimeters.
+ */
 export function cellPosition(
   column: number,
   row: number,
@@ -31,6 +42,14 @@ export function cellPosition(
     (row + (column % 2) / 2) * pitch,
   ];
 }
+/**
+ * Removes graph sinks (female recipients) before their rail-bearing neighbors.
+ * @param pods Candidate pods, including isolated bodies.
+ * @param connections Directed male-to-female joints; disabled joints are ignored.
+ * @returns Deterministic outside-in sequence of pod IDs.
+ * @throws If the remaining enabled connection graph has no removable sink.
+ * This checks graph constraints only; GeometryEngine.generate validates sweeps.
+ */
 export function removalOrder(
   pods: Pod[],
   connections: Layout['connections'],
@@ -56,6 +75,12 @@ export function removalOrder(
   }
   return order;
 }
+/**
+ * Derives pod positions, real edge adjacency, joint overrides and connected groups.
+ * @param config Validatable editor input; this function does not mutate it.
+ * @returns Layout with graph-based removal order and non-blocking warnings.
+ * @throws For invalid configuration or an impossible directed removal order.
+ */
 export function makeLayout(config: Configuration): Layout {
   const errors = validateConfig(config);
   if (errors.length) throw new Error(errors.join(' '));
@@ -89,6 +114,8 @@ export function makeLayout(config: Configuration): Layout {
       const [x, y] = cellPosition(col, row, config.clearances.wallGap);
       pods.push({ id, kind, x, y, baseTrim: 0, enabled: [], filler: false });
     }
+  // Use the actual lowest present floor, not the nominal grid origin: holes and
+  // half replacements can change it. Trim only the small stagger-induced gap.
   if (config.flatBase && pods.length) {
     const floor = Math.min(
       ...pods.map((p) => p.y + (p.kind === 'full' ? -DIM.height / 2 : 0)),
@@ -128,6 +155,8 @@ export function makeLayout(config: Configuration): Layout {
       );
   }
   const connections: Layout['connections'] = [];
+  // Coordinate lookup avoids all-pairs adjacency tests. Five decimal places
+  // absorb floating-point trig noise without conflating millimeter-scale gaps.
   const map = new Map(
     pods.map((p) => [`${p.x.toFixed(5)},${p.y.toFixed(5)}`, p]),
   );
@@ -158,6 +187,8 @@ export function makeLayout(config: Configuration): Layout {
       } else if (config.overrides[edgeOverrideKey(pod.id, edge)] === true)
         pod.enabled.push(edge);
     }
+  // Flood-fill enabled joints only; turning off a shared edge can split exports
+  // into groups even though the two pods remain spatially adjacent.
   const unseen = new Set(pods.map((p) => p.id)),
     groups: string[][] = [];
   while (unseen.size) {
@@ -189,6 +220,14 @@ export function makeLayout(config: Configuration): Layout {
     warnings,
   };
 }
+/**
+ * Returns updated configuration for one front-view edge, preserving other edits.
+ * @param config Current configuration; nested override state is copied on change.
+ * @param id Selected pod ID (ignored for single mode).
+ * @param edge Edge on that pod, not on its facing neighbor.
+ * @param on True to generate the connector; false to fill its wall.
+ * Shared edges write one pair override so both sides change together.
+ */
 export function toggleEdge(
   config: Configuration,
   id: string,

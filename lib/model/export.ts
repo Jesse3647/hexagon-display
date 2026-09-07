@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import type { Configuration, ModelResult, Part } from './types';
+/** Escapes arbitrary names before inserting them into XML attributes. */
 const xml = (text: string) =>
   text.replace(
     /[<>&"']/g,
@@ -12,6 +13,12 @@ const xml = (text: string) =>
         "'": '&apos;',
       })[c]!,
   );
+/**
+ * Selects exportable bodies without changing their positions or merging meshes.
+ * @param result Generation result whose errors must be empty.
+ * @param group Zero-based connected-group index; omit to include every group.
+ * @throws For invalid geometry, an unknown group, or an empty selection.
+ */
 export function printableParts(result: ModelResult, group?: number): Part[] {
   if (result.errors.length) throw new Error(result.errors.join(' '));
   const ids = group === undefined ? null : result.layout.groups[group];
@@ -20,9 +27,18 @@ export function printableParts(result: ModelResult, group?: number): Part[] {
   if (!parts.length) throw new Error('There are no pods to export.');
   return parts;
 }
+/**
+ * Serializes binary little-endian STL with one triangle stream of separate shells.
+ * @param result Validated meshes; local vertices receive each pod's XY translation.
+ * @param group Optional zero-based export group; undefined exports all bodies.
+ * @returns File bytes. Coordinates are mm, but STL has no standard unit metadata.
+ * @throws If printableParts rejects the result or selection.
+ */
 export function exportSTL(result: ModelResult, group?: number): Uint8Array {
   const parts = printableParts(result, group),
     count = parts.reduce((sum, p) => sum + p.mesh.indices.length / 3, 0);
+  // Binary STL: 80-byte header + uint32 triangle count + 50 bytes per facet
+  // (normal, three vertices, and an unused uint16 attribute field).
   const bytes = new Uint8Array(84 + count * 50),
     view = new DataView(bytes.buffer);
   bytes.set(
@@ -58,6 +74,14 @@ export function exportSTL(result: ModelResult, group?: number): Uint8Array {
   }
   return bytes;
 }
+/**
+ * Packages a millimeter 3MF model with one mesh object per pod and a parent assembly.
+ * @param result Validated meshes; vertices remain local and components carry positions.
+ * @param config Matching source configuration to embed as descriptive metadata.
+ * @param group Optional zero-based connected group; undefined includes all pods.
+ * @returns ZIP/OPC bytes with model, relationships, content types and configuration.
+ * No slicer profiles or G-code are included; separate bodies preserve print-in-place gaps.
+ */
 export function export3MF(
   result: ModelResult,
   config: Configuration,
@@ -80,6 +104,8 @@ export function export3MF(
     })
     .join('');
   const parent = parts.length + 1;
+  // 3MF stores the 3x4 affine transform as 12 values with translation last.
+  // One build item references the parent, keeping slicers from auto-arranging pods.
   const components = parts
     .map(
       (p, i) =>

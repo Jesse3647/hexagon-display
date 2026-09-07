@@ -15,20 +15,39 @@ import {
   type Pod,
 } from './types';
 import { makeLayout, normal } from './layout';
+/** Cached pod-local geometry. The engine owns the WASM handles and mesh arrays. */
 export interface Variant {
+  /** One closed pod body; borrow only while the cache entry is live. */
   solid: Manifold;
+  /** Continuous +Z removal envelope, including later-starting front-stop material. */
   sweep: Manifold;
+  /** Copied JS vertex/index arrays; callers must not mutate or transfer their buffers. */
   mesh: MeshData;
+  /** Closed body volume in mm³. */
   volume: number;
+  /** Local XYZ bounds in mm, before pod placement. */
   bounds: { min: number[]; max: number[] };
 }
+/**
+ * Manifold-backed printable geometry and collision checks, used by workers and CLI.
+ * Reuses pod-local variants across layouts. WASM resources are explicitly owned:
+ * temporary objects are deleted, cached objects survive until eviction/dispose.
+ */
 export class GeometryEngine {
+  /** Insertion-ordered LRU cache of at most 160 variants. */
   private cache = new Map<string, Variant>();
+  /** Relative-pose checks keyed by both variants, XY offset and first-removing pod. */
   private pairCache = new Map<
     string,
     { gap: number; collision: boolean; blocked: boolean }
   >();
+  /** Initialized WASM API, exposed for calibration crops and geometry verification. */
   private constructor(public api: ManifoldToplevel) {}
+  /**
+   * Loads and initializes one Manifold instance.
+   * @param wasmUrl Bundled browser WASM asset URL; omit for the Node package loader.
+   * @returns An engine the caller must dispose or terminate with its owning worker.
+   */
   static async create(wasmUrl?: string) {
     const api = await Module(
       wasmUrl ? { locateFile: () => wasmUrl } : undefined,
@@ -36,9 +55,18 @@ export class GeometryEngine {
     api.setup();
     return new GeometryEngine(api);
   }
+  /** Cache identity excludes placement and selection: only shape, trim, edges and fit affect a solid. */
   key(p: Pod, c: Clearances) {
     return JSON.stringify([p.kind, p.baseTrim, [...p.enabled].sort(), c]);
   }
+  /**
+   * Gets or builds one local pod with integrated rails and solid disabled walls.
+   * @param p Shape, enabled edges and base trim; x/y placement is deliberately ignored.
+   * @param c Shared calibration clearances in millimeters.
+   * @returns Borrowed cache entry; do not delete its handles or modify its mesh.
+   * @throws If construction fails or produces anything other than one positive solid.
+   * Handles become invalid after eviction or dispose; copied JS arrays remain alive.
+   */
   variant(p: Pod, c: Clearances): Variant {
     const key = this.key(p, c);
     const cached = this.cache.get(key);
@@ -48,6 +76,7 @@ export class GeometryEngine {
       return cached;
     }
     const owned: { delete(): void }[] = [];
+    /** Registers a temporary WASM handle for reverse-order cleanup, including on failure. */
     const keep = <T extends { delete(): void }>(item: T): T => {
       owned.push(item);
       return item;
@@ -86,6 +115,8 @@ export class GeometryEngine {
       for (const edge of p.enabled) {
         const [nx, ny] = normal(edge),
           tangent: Vec2 = [ny, -nx];
+        // Edge-local x runs along the wall; y runs outward from its face.
+        // Rotate that frame into the fixed front-view XY system before extrusion.
         const toWorld = ([x, y]: Vec2): Vec2 => [
           nx * (h + y) + tangent[0] * x,
           ny * (h + y) + tangent[1] * x,
@@ -189,6 +220,13 @@ export class GeometryEngine {
       for (let i = owned.length - 1; i >= 0; i--) owned[i].delete();
     }
   }
+  /**
+   * Builds separate meshes, then tests assembled clearance and every removal pair.
+   * @param config Complete single-pod or assembly input.
+   * @returns Meshes plus blocking errors; invalid solids/configuration may throw instead.
+   * The sweep follows the first pod in layout.order against each stationary partner.
+   * Positive modeled gaps are digital evidence, not a physical printer guarantee.
+   */
   generate(config: Configuration): ModelResult {
     const start = performance.now();
     const invalid = validateConfig(config);
@@ -201,8 +239,8 @@ export class GeometryEngine {
     const errors: string[] = [];
     let minGap: number | null = null;
     const removal = new Map(layout.order.map((id, i) => [id, i]));
-    // A spatial broad phase includes every pair whose XY bounds can approach
-    // within 0.05 mm. Connected pairs are included even with larger clearances.
+    // Expand local XY bounds by 0.85 mm: the largest supported wall gap (0.8)
+    // plus a 0.05 mm margin. Vertical removal cannot approach XY-distant pods.
     for (let i = 0; i < parts.length; i++)
       for (let j = i + 1; j < parts.length; j++) {
         const a = parts[i],
@@ -232,6 +270,8 @@ export class GeometryEngine {
           const moved = first ? va.sweep : vb.sweep.translate([dx, dy, 0]);
           const stationary = first ? bs : va.solid;
           const collision = moved.intersect(stationary);
+          // Ignore numerical dust below 1e-7 mm³ when classifying intersections.
+          // The later 1e-4 mm gap check separately rejects touching surfaces.
           check = {
             gap: va.solid.minGap(bs, 1),
             collision: overlap.volume() > 1e-7,
@@ -271,6 +311,7 @@ export class GeometryEngine {
       durationMs: performance.now() - start,
     };
   }
+  /** Deletes cached WASM bodies and sweeps. Safe to call again after the caches are empty. */
   dispose() {
     for (const v of this.cache.values()) {
       v.solid.delete();
