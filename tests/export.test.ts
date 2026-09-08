@@ -99,7 +99,16 @@ void test('calibration archives include three fits in both formats and separate 
     const files = unzipSync(calibrationZip(engine, initialConfig(), separate));
     assert.equal(Object.keys(files).length, 7);
     assert.ok(files['READ-ME.txt']);
-    for (const fit of [0.2, 0.3, 0.4]) {
+    for (const fit of [0.1, 0.15, 0.2]) {
+      // Assert the public download contents independently of the shared sample list.
+      const stem = `${separate ? 'separate-fit' : 'print-in-place'}-${fit.toFixed(2)}mm`;
+      assert.ok(files[`${stem}.stl`]);
+      const sample = unzipSync(files[`${stem}.3mf`]);
+      assert.equal(
+        JSON.parse(strFromU8(sample['Metadata/honeycomb.json'])).config
+          .clearances.fit,
+        fit,
+      );
       const { result } = makeCalibration(
         engine,
         { wallGap: 0.3, fit, axial: 0.4 },

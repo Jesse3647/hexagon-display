@@ -88,9 +88,9 @@ Flat-bottom fillers are trimmed by half the wall gap (0.15 mm at the default set
 
 ## Fit and printing
 
-Default calibration starting points are 0.30 mm between pod walls, 0.30 mm normal clearance per mating connector surface, and 0.40 mm between male tips and female front stops. Use matching settings when mixing individually generated pods and assemblies. Supported adjustment ranges are 0.20–0.80 mm wall gap, 0.15–0.50 mm fit, and 0.20–1.00 mm axial clearance.
+Default calibration starting points are 0.30 mm between pod walls, 0.30 mm normal clearance per mating connector surface, and 0.40 mm between male tips and female front stops. Use matching settings when mixing individually generated pods and assemblies. Supported adjustment ranges are 0.20–0.80 mm wall gap, 0.10–0.50 mm fit, and 0.20–1.00 mm axial clearance.
 
-Download the calibration ZIPs for 0.20, 0.30 and 0.40 mm connector fits. Each contains three small, filename-labeled STL/3MF pairs and instructions. Print one file at a time to keep the fit samples identified. Separate-fit strips assemble after printing; print-in-place strips start interlocked. Calibrate with your intended printer, material, nozzle and layer profile.
+Download the calibration ZIPs for 0.10, 0.15 and 0.20 mm connector fits. Each contains three small, filename-labeled STL/3MF pairs and instructions. Print one file at a time to keep the fit samples identified. Separate-fit strips assemble after printing; print-in-place strips start interlocked. Calibrate with your intended printer, material, nozzle and layer profile. If 0.20 mm slides too loosely, try 0.15 mm, then 0.10 mm. These sliding joints rely on friction for axial retention; they do not click into a latch. Smaller print-in-place gaps may fuse on some setups.
 
 - Print the solid backs on the build plate, with all parts printed layer by layer.
 - Keep the supplied relative part positions. In a slicer import the 3MF assembly as one object with multiple parts, not independently arranged objects.

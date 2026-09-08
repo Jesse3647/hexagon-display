@@ -23,7 +23,7 @@ process.update(name='Honeycomb validation', wall_loops='3', sparse_infill_densit
 process_path=work/'process.json'
 process_path.write_text(json.dumps(process))
 report={'application':'Bambu Studio 02.08.02.61','profile':{'printer':'Bambu Lab X1 Carbon 0.4 nozzle','material':'Generic PLA','layer_height_mm':0.2,'wall_loops':3,'infill':'15%','supports':False},'physical_validation':False,'models':{}}
-names=sys.argv[1:] or ['closed_pod','all_connectors','half_pod','assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.30','calibration_in_place_0.40','calibration_separate_0.20','calibration_separate_0.30','calibration_separate_0.40']
+names=sys.argv[1:] or ['closed_pod','all_connectors','half_pod','assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.10','calibration_in_place_0.15','calibration_separate_0.20','calibration_separate_0.10','calibration_separate_0.15']
 for name in names:
     folder=work/name
     folder.mkdir(exist_ok=True)

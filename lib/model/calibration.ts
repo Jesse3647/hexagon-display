@@ -1,6 +1,7 @@
 import { zipSync, strToU8 } from 'fflate';
 import {
   DIM,
+  CALIBRATION_FITS,
   initialConfig,
   type Clearances,
   type Configuration,
@@ -98,7 +99,7 @@ export function makeCalibration(
   };
 }
 /**
- * Builds labeled STL/3MF samples at fit clearances 0.20, 0.30 and 0.40 mm.
+ * Builds labeled STL/3MF samples at fit clearances 0.10, 0.15 and 0.20 mm.
  * @param engine Geometry cache shared across the three samples.
  * @param config Supplies wallGap and axial clearance; its fit value is replaced per sample.
  * @param separate Selects separately printed strips or pre-interlocked strips.
@@ -110,7 +111,7 @@ export function calibrationZip(
   separate: boolean,
 ): Uint8Array {
   const files: Record<string, Uint8Array> = {};
-  for (const fit of [0.2, 0.3, 0.4]) {
+  for (const fit of CALIBRATION_FITS) {
     const sample = makeCalibration(
       engine,
       { ...config.clearances, fit },
@@ -121,7 +122,7 @@ export function calibrationZip(
     files[`${name}.3mf`] = export3MF(sample.result, sample.config);
   }
   files['READ-ME.txt'] = strToU8(
-    `HONEYCOMB CONNECTOR CALIBRATION\n\nThe filename identifies connector clearance per mating surface: 0.20, 0.30, or 0.40 mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\n${separate ? 'The two strips are separated on the bed. Slide the female strip over the tapered end of the male rail until their fronts align.' : 'These two strips print already interlocked. After cooling, slide the female strip toward the open front (+Z) to release it; slide back to reassemble.'}\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
+    `HONEYCOMB CONNECTOR CALIBRATION\n\nThe filename identifies connector clearance per mating surface: ${CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')} mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\n${separate ? 'The two strips are separated on the bed. Slide the female strip over the tapered end of the male rail until their fronts align.' : 'These two strips print already interlocked. After cooling, slide the female strip toward the open front (+Z) to release it; slide back to reassemble.'}\n\nThese are sliding dovetails, not snap latches. Start with 0.15 mm if 0.20 mm was too loose; use 0.10 mm if more friction is needed. Smaller gaps can fuse in print-in-place samples.\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
   );
   return zipSync(files, { level: 6 });
 }

@@ -46,6 +46,7 @@ import { useModel } from '@/lib/model/use-model';
 import { makeLayout, toggleEdge } from '@/lib/model/layout';
 import {
   initialConfig,
+  CALIBRATION_FITS,
   availableEdges,
   isMale,
   type Configuration,
@@ -528,7 +529,7 @@ export default function Home() {
               {(
                 [
                   ['wallGap', 'Wall gap', 0.2, 0.8],
-                  ['fit', 'Connector clearance', 0.15, 0.5],
+                  ['fit', 'Connector clearance', CALIBRATION_FITS[0], 0.5],
                   ['axial', 'Front-stop clearance', 0.2, 1],
                 ] as const
               ).map(([key, label, min, max]) => (
@@ -709,9 +710,10 @@ export default function Home() {
                 <DialogHeader>
                   <DialogTitle>Calibrate your connector fit</DialogTitle>
                   <DialogDescription>
-                    Print connector samples at 0.20, 0.30 and 0.40 mm clearance
-                    with your intended material and settings. Choose the
-                    tightest fit that slides freely.
+                    Print connector samples at{' '}
+                    {CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')}{' '}
+                    mm clearance with your intended material and settings.
+                    Choose the tightest fit that slides freely.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="calibration-actions">

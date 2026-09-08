@@ -12,37 +12,37 @@
       "stl_3mf_agree": true,
       "minimum_z": 0.0
     },
+    "calibration_in_place_0.10": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
+    "calibration_in_place_0.15": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
     "calibration_in_place_0.20": {
       "success": true,
       "closed_bodies": 2,
       "stl_3mf_agree": true,
       "minimum_z": 0.0
     },
-    "calibration_in_place_0.30": {
+    "calibration_separate_0.10": {
       "success": true,
       "closed_bodies": 2,
       "stl_3mf_agree": true,
       "minimum_z": 0.0
     },
-    "calibration_in_place_0.40": {
+    "calibration_separate_0.15": {
       "success": true,
       "closed_bodies": 2,
       "stl_3mf_agree": true,
       "minimum_z": 0.0
     },
     "calibration_separate_0.20": {
-      "success": true,
-      "closed_bodies": 2,
-      "stl_3mf_agree": true,
-      "minimum_z": 0.0
-    },
-    "calibration_separate_0.30": {
-      "success": true,
-      "closed_bodies": 2,
-      "stl_3mf_agree": true,
-      "minimum_z": 0.0
-    },
-    "calibration_separate_0.40": {
       "success": true,
       "closed_bodies": 2,
       "stl_3mf_agree": true,
@@ -212,30 +212,30 @@
       "unsupported_arcs": 0,
       "success": true
     },
-    "calibration_in_place_0.30": {
+    "calibration_in_place_0.10": {
       "sampled_layers": {
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.1,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.1,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.2975,
+          "minimum_xy_bead_gap_mm": 0.0998,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.2975,
+          "minimum_xy_bead_gap_mm": 0.1328,
           "errors": []
         },
         "20.2": {
@@ -260,30 +260,30 @@
       "unsupported_arcs": 0,
       "success": true
     },
-    "calibration_in_place_0.40": {
+    "calibration_in_place_0.15": {
       "sampled_layers": {
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.15,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.15,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.1498,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 0.3,
+          "minimum_xy_bead_gap_mm": 0.1828,
           "errors": []
         },
         "20.2": {

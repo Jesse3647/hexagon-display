@@ -49,7 +49,7 @@ for file in sorted(models.glob('*.stl')):
 # Sample the first layer, back, mid-depth, rail end and front-stop region.
 # This selection supplements the exact solid sweep checks; it is not exhaustive.
 samples={.2,2.4,10.,19.8,20.2,20.6,22.}
-for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.30','calibration_in_place_0.40']:
+for name in ['assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.10','calibration_in_place_0.15']:
     file=root/'work/slicing'/name/'plate_1.gcode'
     # Read slicer-owned transforms, including its recentering of each part.
     with zipfile.ZipFile(file.parent/'sliced.3mf') as archive:

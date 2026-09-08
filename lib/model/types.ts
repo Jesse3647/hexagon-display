@@ -52,6 +52,8 @@ export const DIM = {
   /** Controls the taper shrinkage relative to the largest local profile extent. */
   tip: 0.12,
 } as const;
+/** Sample normal clearances per mating surface (mm), ordered from tightest to loosest. */
+export const CALIBRATION_FITS = [0.1, 0.15, 0.2] as const;
 /** Printer calibration settings shared by standalone pods and assemblies. */
 export interface Clearances {
   /** Separation between neighboring exterior wall planes (mm). */
@@ -210,7 +212,7 @@ export function validateConfig(c: Configuration): string[] {
     errors.push('Use 1–20 columns and rows.');
   for (const [key, min, max] of [
     ['wallGap', 0.2, 0.8],
-    ['fit', 0.15, 0.5],
+    ['fit', CALIBRATION_FITS[0], 0.5],
     ['axial', 0.2, 1.0],
   ] as const) {
     const value = c.clearances?.[key];

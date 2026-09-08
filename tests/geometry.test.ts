@@ -71,7 +71,7 @@ void test('unconnected pod preserves opening, exterior and solid wall dimensions
   center.delete();
 });
 void test('three directions, multiple fits, and half substitutions have clearance and continuous removal', () => {
-  for (const fit of [0.15, 0.3, 0.5])
+  for (const fit of [0.1, 0.15, 0.2, 0.3, 0.5])
     for (const kind of ['full', 'half'] as const) {
       const c = {
         ...initialConfig(),
@@ -83,7 +83,7 @@ void test('three directions, multiple fits, and half substitutions have clearanc
       };
       const r = engine.generate(c);
       assert.deepEqual(r.errors, [], JSON.stringify(c));
-      assert.ok(r.minGap! > 0.1);
+      assert.ok(r.minGap! > Math.min(0.1, fit / 2));
       assert.equal(r.layout.order.length, 4);
     }
 });

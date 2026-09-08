@@ -7,7 +7,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { GeometryEngine } from '../lib/model/geometry';
-import { initialConfig, EDGES, type Configuration } from '../lib/model/types';
+import {
+  initialConfig,
+  EDGES,
+  CALIBRATION_FITS,
+  type Configuration,
+} from '../lib/model/types';
 import { exportSTL, export3MF } from '../lib/model/export';
 import { calibrationZip, makeCalibration } from '../lib/model/calibration';
 const destination = resolve(process.argv[2] ?? 'generated');
@@ -60,7 +65,7 @@ try {
       ),
       calibrationZip(engine, initialConfig(), separate),
     );
-    for (const fit of [0.2, 0.3, 0.4]) {
+    for (const fit of CALIBRATION_FITS) {
       const { config, result } = makeCalibration(
         engine,
         { wallGap: 0.3, fit, axial: 0.4 },
