@@ -4,7 +4,7 @@
   "models": {
     "closed_pod": {
       "bodies": 1,
-      "triangles": 66,
+      "triangles": 44,
       "dimensions": [
         39.25981830060482,
         34,
@@ -18,10 +18,10 @@
     },
     "all_connectors": {
       "bodies": 1,
-      "triangles": 246,
+      "triangles": 236,
       "dimensions": [
         39.25981830060482,
-        35.149999998509884,
+        35.600000001490116,
         22.05
       ],
       "minGap": null,
@@ -32,10 +32,10 @@
     },
     "half_pod": {
       "bodies": 1,
-      "triangles": 134,
+      "triangles": 124,
       "dimensions": [
         39.25981830060482,
-        18.149999998509884,
+        18.600000001490116,
         22.05
       ],
       "minGap": null,
@@ -44,15 +44,30 @@
       ],
       "errors": []
     },
+    "assembly_2x1": {
+      "bodies": 2,
+      "triangles": 152,
+      "dimensions": [
+        68.96448965041105,
+        51.15,
+        22.05
+      ],
+      "minGap": 0.14999999529131092,
+      "removalOrder": [
+        "1,0",
+        "0,0"
+      ],
+      "errors": []
+    },
     "assembly_3x3": {
       "bodies": 10,
-      "triangles": 1762,
+      "triangles": 1640,
       "dimensions": [
         98.6691610002173,
         119.75000000149012,
         22.05
       ],
-      "minGap": 0.2999999971260525,
+      "minGap": 0.14999999529131092,
       "removalOrder": [
         "2,2",
         "2,1",
@@ -69,13 +84,13 @@
     },
     "edited_assembly": {
       "bodies": 8,
-      "triangles": 1102,
+      "triangles": 976,
       "dimensions": [
         98.6691610002173,
         119.75,
         22.05
       ],
-      "minGap": 0.2999999971260525,
+      "minGap": 0.14999999529131092,
       "removalOrder": [
         "2,2",
         "2,1",

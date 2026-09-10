@@ -19,8 +19,6 @@ self.onmessage = async (
     config: Configuration;
     /** "calibration" produces ZIP bytes; all other values generate a ModelResult. */
     op?: string;
-    /** Calibration only: true separates the test strips before export. */
-    separate?: boolean;
   }>,
 ) => {
   const { id, config } = event.data;
@@ -28,7 +26,7 @@ self.onmessage = async (
     engine ??= GeometryEngine.create(wasmUrl);
     const api = await engine;
     if (event.data.op === 'calibration') {
-      const bytes = calibrationZip(api, config, !!event.data.separate);
+      const bytes = calibrationZip(api, config);
       self.postMessage({ id, bytes });
     } else {
       const result = api.generate(config);

@@ -1,5 +1,11 @@
 import { strToU8, zipSync } from 'fflate';
-import type { Configuration, ModelResult, Part } from './types';
+import { spacePartsForPrinting, PRINT_PART_GAP } from './print-layout';
+import {
+  CONNECTOR_SYSTEM,
+  type Configuration,
+  type ModelResult,
+  type Part,
+} from './types';
 /** Escapes arbitrary names before inserting them into XML attributes. */
 const xml = (text: string) =>
   text.replace(
@@ -29,13 +35,13 @@ export function printableParts(result: ModelResult, group?: number): Part[] {
 }
 /**
  * Serializes binary little-endian STL with one triangle stream of separate shells.
- * @param result Validated meshes; local vertices receive each pod's XY translation.
+ * @param result Validated meshes; local meshes receive export-only spacing; preview positions remain unchanged.
  * @param group Optional zero-based export group; undefined exports all bodies.
  * @returns File bytes. Coordinates are mm, but STL has no standard unit metadata.
  * @throws If printableParts rejects the result or selection.
  */
 export function exportSTL(result: ModelResult, group?: number): Uint8Array {
-  const parts = printableParts(result, group),
+  const parts = spacePartsForPrinting(printableParts(result, group)),
     count = parts.reduce((sum, p) => sum + p.mesh.indices.length / 3, 0);
   // Binary STL: 80-byte header + uint32 triangle count + 50 bytes per facet
   // (normal, three vertices, and an unused uint16 attribute field).
@@ -43,7 +49,7 @@ export function exportSTL(result: ModelResult, group?: number): Uint8Array {
     view = new DataView(bytes.buffer);
   bytes.set(
     new TextEncoder().encode(
-      'Honeycomb Workshop | millimeters | separate pod shells',
+      'Honeycomb Workshop | T-slot v2 | millimeters | separate pod shells',
     ),
   );
   view.setUint32(80, count, true);
@@ -74,20 +80,35 @@ export function exportSTL(result: ModelResult, group?: number): Uint8Array {
   }
   return bytes;
 }
+/** Names slicer components using the editor's one-based column.row cell labels. */
+function printPartName(part: Part): string {
+  const cell = /^(\d+),(\d+)$/.exec(part.id);
+  if (cell)
+    return `Pod ${Number(cell[1]) + 1}.${Number(cell[2]) + 1} (${part.kind})`;
+  const filler = /^base-(\d+)$/.exec(part.id);
+  if (filler) return `Column ${Number(filler[1]) + 1} bottom filler`;
+  if (part.id === 'single')
+    return `${part.kind === 'full' ? 'Full' : 'Half'} pod`;
+  return part.id; // Calibration IDs already identify gender and clearance.
+}
 /**
  * Packages a millimeter 3MF model with one mesh object per pod and a parent assembly.
- * @param result Validated meshes; vertices remain local and components carry positions.
+ * @param result Validated meshes; vertices remain local and components carry exploded assembly positions.
  * @param config Matching source configuration to embed as descriptive metadata.
  * @param group Optional zero-based connected group; undefined includes all pods.
  * @returns ZIP/OPC bytes with model, relationships, content types and configuration.
- * No slicer profiles or G-code are included; separate bodies preserve print-in-place gaps.
+ * No slicer profiles or G-code are included. Pods are spaced for printing, then assembled.
+ * Source assembly positions are retained in JSON metadata for reference.
+ * A Bambu-compatible companion preserves component names without supplying slicer settings.
+ * Metadata records the connector system so T-slot files are distinguishable from dovetails.
  */
 export function export3MF(
   result: ModelResult,
   config: Configuration,
   group?: number,
 ): Uint8Array {
-  const parts = printableParts(result, group);
+  const sourceParts = printableParts(result, group);
+  const parts = spacePartsForPrinting(sourceParts);
   const objects = parts
     .map((p, i) => {
       const vertices: string[] = [];
@@ -100,10 +121,13 @@ export function export3MF(
         triangles.push(
           `<triangle v1="${p.mesh.indices[k]}" v2="${p.mesh.indices[k + 1]}" v3="${p.mesh.indices[k + 2]}"/>`,
         );
-      return `<object id="${i + 1}" type="model" name="${xml(`${p.id} ${p.kind}`)}"><mesh><vertices>${vertices.join('')}</vertices><triangles>${triangles.join('')}</triangles></mesh></object>`;
+      return `<object id="${i + 1}" type="model" name="${xml(printPartName(p))}"><mesh><vertices>${vertices.join('')}</vertices><triangles>${triangles.join('')}</triangles></mesh></object>`;
     })
     .join('');
   const parent = parts.length + 1;
+  // Bambu's generic importer replaces core mesh names beneath a parent assembly.
+  // This optional companion contains names only: no printer/process/material settings.
+  const partNames = `<?xml version="1.0" encoding="UTF-8"?><config><object id="${parent}"><metadata key="name" value="Honeycomb exploded assembly"/>${parts.map((p, i) => `<part id="${i + 1}" subtype="normal_part"><metadata key="name" value="${xml(printPartName(p))}"/></part>`).join('')}</object></config>`;
   // 3MF stores the 3x4 affine transform as 12 values with translation last.
   // One build item references the parent, keeping slicers from auto-arranging pods.
   const components = parts
@@ -112,20 +136,37 @@ export function export3MF(
         `<component objectid="${i + 1}" transform="1 0 0 0 1 0 0 0 1 ${p.x} ${p.y} 0"/>`,
     )
     .join('');
-  const model = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">Honeycomb display</metadata><metadata name="Description">Separate interlocked pods. Keep component positions; print all layers together with backs on the bed.</metadata><resources>${objects}<object id="${parent}" type="model" name="Honeycomb assembly"><components>${components}</components></object></resources><build><item objectid="${parent}"/></build></model>`;
+  const model = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">Honeycomb display</metadata><metadata name="Description">Exploded assembly: pods retain their relative layout and orientation with gaps for printing. Print layer by layer with backs on the bed; slide together afterward.</metadata><resources>${objects}<object id="${parent}" type="model" name="Honeycomb exploded assembly"><components>${components}</components></object></resources><build><item objectid="${parent}"/></build></model>`;
   return zipSync(
     {
       '[Content_Types].xml': strToU8(
-        '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="json" ContentType="application/json"/></Types>',
+        '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="json" ContentType="application/json"/><Default Extension="config" ContentType="application/xml"/></Types>',
       ),
       '_rels/.rels': strToU8(
         '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>',
       ),
       '3D/3dmodel.model': strToU8(model),
+      'Metadata/model_settings.config': strToU8(partNames),
       'Metadata/honeycomb.json': strToU8(
         JSON.stringify(
           {
-            version: 2,
+            version: 6,
+            printLayout: {
+              mode: 'exploded',
+              minimumPartGapMm: PRINT_PART_GAP,
+            },
+            // Original preview placement survives the export-only rearrangement.
+            assemblyPositions: sourceParts.map(({ id, x, y }) => ({
+              id,
+              x,
+              y,
+              z: 0,
+            })),
+            connectorSystem: CONNECTOR_SYSTEM,
+            // Record bed treatment separately: mating dimensions still use T-slot v2.
+            // Explicitly identify square bed edges in newly generated files.
+            bedRelief: null,
+            railEnd: 'square',
             config,
             group: group ?? null,
             removalOrder: result.layout.order,

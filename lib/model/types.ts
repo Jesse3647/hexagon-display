@@ -25,7 +25,7 @@ export const OPPOSITE: Record<Edge, Edge> = {
   NW: 'SE',
   SE: 'NW',
 };
-/** Baseline pod and dovetail dimensions, in millimeters. */
+/** Baseline pod and T-slot dimensions, in millimeters. */
 export const DIM = {
   /** Full exterior height across the horizontal flats. */
   height: 34,
@@ -39,21 +39,25 @@ export const DIM = {
   back: 2.4,
   /** Nominal wall thickness before cutting channels. */
   wall: 2,
-  /** Female cavity depth inward from the exterior wall face. */
-  channelDepth: 1.15,
-  /** Nominal dovetail mouth width along the wall tangent. */
+  /** Cavity depth (mm); leaves 0.55 mm backing inside the unchanged 2 mm wall. */
+  channelDepth: 1.45,
+  /** Nominal T-slot mouth width along the wall tangent. */
   seam: 3.4,
-  /** Nominal dovetail width at the deepest part of the female cavity. */
-  far: 5.4,
+  /** Nominal T-slot width at the deepest part of the female cavity. */
+  far: 6.0,
+  /** Lip thickness (mm). With the chamber above, head thickness is 0.90 - 2*fit.
+   * Balances lips, head and backing for Classic slicing with a 0.4 mm nozzle.
+   */
+  shoulder: 0.55,
   /** Uncut wall length at the front of a female channel. */
   stop: 1.6,
-  /** Axial length of the male rail tip taper. */
-  lead: 1,
-  /** Controls the taper shrinkage relative to the largest local profile extent. */
-  tip: 0.12,
 } as const;
+/** Profile revision; thicker lips/head require matching v2 parts on both sides. */
+export const CONNECTOR_SYSTEM = 't-slot-v2';
 /** Sample normal clearances per mating surface (mm), ordered from tightest to loosest. */
 export const CALIBRATION_FITS = [0.1, 0.15, 0.2] as const;
+/** Coupon height above the bed (mm); keeps the 2.4 mm back, square rail end and 1.6 mm stop. */
+export const CALIBRATION_HEIGHT = 8;
 /** Printer calibration settings shared by standalone pods and assemblies. */
 export interface Clearances {
   /** Separation between neighboring exterior wall planes (mm). */
@@ -66,7 +70,7 @@ export interface Clearances {
 /** Starting points for calibration, not a guarantee of physical fit. */
 export const DEFAULT_CLEARANCES: Clearances = {
   wallGap: 0.3,
-  fit: 0.3,
+  fit: 0.15,
   axial: 0.4,
 };
 /** Serializable user input; derived pods and adjacency belong in Layout instead. */
@@ -83,7 +87,7 @@ export interface Configuration {
   columns: number;
   /** Full-pod cell count per column, an integer from 1 through 20. */
   rows: number;
-  /** Sparse zero-based "column,row" edits; absent entries mean full pods. */
+  /** Sparse zero-based "column,row" edits; absent entries mean full pods. Half pods require row 0. */
   cells: Record<string, CellKind>;
   /** Adds upper-half fillers where they can reach the assembly floor. */
   flatBase: boolean;
@@ -185,10 +189,16 @@ export interface ModelResult {
 /** Returns only physically present connector edges for a shape. */
 export const availableEdges = (kind: PodKind): readonly Edge[] =>
   kind === 'half' ? HALF_EDGES : EDGES;
+/**
+ * Whether a grid cell may become an upper-half pod: only row 0 (displayed as 1).
+ * Holes do not shift the bottom row. Automatic fillers and single pods use separate rules.
+ * @param id Zero-based "column,row" grid ID; non-grid IDs return false.
+ */
+export const isBottomRowCell = (id: string): boolean => /^\d+,0$/.test(id);
 /** Tests the fixed connector gender; does not depend on a pod or camera pose. */
 export const isMale = (edge: Edge) => MALE.includes(edge);
 /**
- * Checks supported modes, shapes, numeric ranges and collection values.
+ * Checks supported modes, shapes, numeric ranges, collection values and bottom-row half placement.
  * @param c Candidate configuration, also checked at runtime at external boundaries.
  * @returns User-readable errors; an empty array means these input checks passed.
  * Does not prove mesh validity, sanitize cell keys, or check connector collisions.
@@ -212,7 +222,7 @@ export function validateConfig(c: Configuration): string[] {
     errors.push('Use 1–20 columns and rows.');
   for (const [key, min, max] of [
     ['wallGap', 0.2, 0.8],
-    ['fit', CALIBRATION_FITS[0], 0.5],
+    ['fit', CALIBRATION_FITS[0], CALIBRATION_FITS[2]],
     ['axial', 0.2, 1.0],
   ] as const) {
     const value = c.clearances?.[key];
@@ -226,6 +236,13 @@ export function validateConfig(c: Configuration): string[] {
     Object.values(c.cells).some((k) => !['full', 'half', 'empty'].includes(k))
   )
     errors.push('Invalid layout cell.');
+  else if (
+    c.mode === 'assembly' &&
+    Object.entries(c.cells).some(
+      ([id, kind]) => kind === 'half' && !isBottomRowCell(id),
+    )
+  )
+    errors.push('Half pods are only allowed in the bottom row (row 1).');
   if (
     !c.overrides ||
     Object.values(c.overrides).some((v) => typeof v !== 'boolean')
