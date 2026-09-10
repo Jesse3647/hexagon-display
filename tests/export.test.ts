@@ -119,7 +119,7 @@ void test('export rejects invalid geometry and can select a disconnected group',
 void test('calibration archives contain three spaced pairs and separate-fit instructions', () => {
   const files = unzipSync(calibrationZip(engine, initialConfig()));
   assert.equal(Object.keys(files).length, 7);
-  assert.match(strFromU8(files['READ-ME.txt']), /two strips print 5 mm apart/);
+  assert.match(strFromU8(files['READ-ME.txt']), /two strips print 2\.5 mm apart/);
   for (const fit of [0.1, 0.15, 0.2]) {
     const stem = `t-slot-v2-separate-fit-8mm-tall-square-base-fit-${fit.toFixed(2)}mm`;
     assert.ok(files[`${stem}.stl`]);
@@ -130,7 +130,7 @@ void test('calibration archives contain three spaced pairs and separate-fit inst
     assert.equal(meta.railEnd, 'square');
     assert.deepEqual(meta.printLayout, {
       mode: 'exploded',
-      minimumPartGapMm: 5,
+      minimumPartGapMm: 2.5,
     });
     const { result } = makeCalibration(engine, {
       wallGap: 0.3,
@@ -149,7 +149,7 @@ void test('calibration archives contain three spaced pairs and separate-fit inst
   }
 });
 
-/** Independent bounds check: each pair must have a 5 mm lane along X or Y. */
+/** Independent bounds check: each pair must have a 2.5 mm lane along X or Y. */
 function assertSeparated(parts: ReturnType<typeof spacePartsForPrinting>) {
   for (let i = 0; i < parts.length; i++)
     for (let j = i + 1; j < parts.length; j++) {
@@ -164,7 +164,7 @@ function assertSeparated(parts: ReturnType<typeof spacePartsForPrinting>) {
         a.bounds.min[1] + a.y - b.bounds.max[1] - b.y,
       );
       assert.ok(
-        Math.max(gapX, gapY) >= 5 - 1e-6,
+        Math.max(gapX, gapY) >= 2.5 - 1e-6,
         `${a.id} and ${b.id} are too close`,
       );
     }
@@ -257,6 +257,10 @@ void test('2 by 1 export keeps its stagger, cell names and orientation in either
   const result = engine.generate(config);
   const parts = spacePartsForPrinting(result.parts);
   assertSeparated(parts);
+  // This pair must use the requested compact gap, not merely exceed it.
+  const horizontalGap =
+    parts[1].x + parts[1].bounds.min[0] - parts[0].x - parts[0].bounds.max[0];
+  assert.ok(Math.abs(horizontalGap - 2.5) < 1e-6);
   assert.ok(parts[1].x > parts[0].x && parts[1].y > parts[0].y);
   assert.ok(
     Math.abs(

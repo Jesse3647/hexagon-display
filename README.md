@@ -70,7 +70,7 @@ Use **STL** or **Export 3MF** beneath the preview. The arrow controls step throu
 
 ![STL and 3MF export buttons, removal-step controls and the right-aligned Calibrate fit button](docs/images/exports.png)
 
-Downloads stay disabled while the model is updating or invalid. If a layout contains disconnected groups, an **Export group** selector lets you download one group or all of them. Both formats use an **exploded assembly layout**: pods keep their relative positions and orientation, with **at least 5 mm between parts** for printing. The preview shows them assembled. Choose **3MF** for separate pod components named to match the editor’s cell labels (such as **1.1** and **2.1**); split the assembly into objects in your slicer to rearrange or delete pods. Keep the imported arrangement to use it as an assembly guide; slicer auto-arrange can change it. Exports contain geometry, without printer or slicer settings.
+Downloads stay disabled while the model is updating or invalid. If a layout contains disconnected groups, an **Export group** selector lets you download one group or all of them. Both formats use an **exploded assembly layout**: pods keep their relative positions and orientation, with **at least 2.5 mm between parts** for printing. The preview shows them assembled. Choose **3MF** for separate pod components named to match the editor’s cell labels (such as **1.1** and **2.1**); split the assembly into objects in your slicer to rearrange or delete pods. Keep the imported arrangement to use it as an assembly guide; slicer auto-arrange can change it. Exports contain geometry, without printer or slicer settings.
 
 ### 7. Download calibration samples
 

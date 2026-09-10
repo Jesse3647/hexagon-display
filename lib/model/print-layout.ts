@@ -1,7 +1,7 @@
 import type { Part } from './types';
 
 /** Minimum XY distance between exported bounding boxes, including every rail (mm). */
-export const PRINT_PART_GAP = 5;
+export const PRINT_PART_GAP = 2.5;
 
 /**
  * Spreads an assembly's positions uniformly, retaining stagger, holes and orientation.

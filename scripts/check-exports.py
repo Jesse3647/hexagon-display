@@ -185,7 +185,7 @@ for name in ['assembly_2x1','assembly_3x3','edited_assembly','calibration_separa
             for b in matched[i+1:]:
                 distance=islands[a].distance(islands[b])
                 distances.append(distance)
-        if distances and min(distances) < 4.8: errors.append('Printed bead envelopes do not retain the nominal 5 mm spacing (0.2 mm check tolerance).')
+        if distances and min(distances) < 2.3: errors.append('Printed bead envelopes do not retain the nominal 2.5 mm spacing (0.2 mm check tolerance).')
         layers[str(height)]={'expected_bodies':len(bodies),'distinct_extruded_bodies':len(set(matched)),'minimum_xy_bead_gap_mm':round(min(distances),4) if distances else None,'errors':errors}
     report['sampled_toolpath_checks'][name]={'sampled_layers':layers,'unsupported_arcs':arcs,'relative_positions_preserved':positions_preserved,'part_names_preserved':names_preserved,'success':names_preserved and positions_preserved and arcs==0 and all(not l['errors'] for l in layers.values())}
 report['note']='Toolpath checks buffer positive-extrusion moves by half the declared line width on seven sampled layers. Body witnesses from slicer-transformed meshes must map to distinct extrusion-envelope islands. This verifies nominal separated bead envelopes, not extrusion behavior or adhesion on a physical printer.'

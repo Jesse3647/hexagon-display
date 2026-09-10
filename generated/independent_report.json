@@ -61,43 +61,43 @@
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 15.5071,
+          "minimum_xy_bead_gap_mm": 12.6201,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 15.5067,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 15.5067,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 15.5067,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "20.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 17.1065,
+          "minimum_xy_bead_gap_mm": 14.2195,
           "errors": []
         },
         "20.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 17.0919,
+          "minimum_xy_bead_gap_mm": 14.2051,
           "errors": []
         },
         "22.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 17.1065,
+          "minimum_xy_bead_gap_mm": 14.2195,
           "errors": []
         }
       },
@@ -111,43 +111,43 @@
         "0.2": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 15.506,
+          "minimum_xy_bead_gap_mm": 12.62,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 15.506,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 15.506,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 15.506,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "20.2": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 17.1059,
+          "minimum_xy_bead_gap_mm": 14.2194,
           "errors": []
         },
         "20.6": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 17.0909,
+          "minimum_xy_bead_gap_mm": 14.2044,
           "errors": []
         },
         "22.0": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 17.106,
+          "minimum_xy_bead_gap_mm": 14.2195,
           "errors": []
         }
       },
@@ -161,43 +161,43 @@
         "0.2": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 15.507,
+          "minimum_xy_bead_gap_mm": 12.62,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 15.5065,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 15.5063,
+          "minimum_xy_bead_gap_mm": 12.6198,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 15.5065,
+          "minimum_xy_bead_gap_mm": 12.6199,
           "errors": []
         },
         "20.2": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 17.106,
+          "minimum_xy_bead_gap_mm": 14.2193,
           "errors": []
         },
         "20.6": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 17.0909,
+          "minimum_xy_bead_gap_mm": 14.2044,
           "errors": []
         },
         "22.0": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 17.106,
+          "minimum_xy_bead_gap_mm": 14.2195,
           "errors": []
         }
       },
@@ -211,43 +211,43 @@
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.65,
+          "minimum_xy_bead_gap_mm": 4.15,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.635,
+          "minimum_xy_bead_gap_mm": 4.135,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.65,
+          "minimum_xy_bead_gap_mm": 4.15,
           "errors": []
         }
       },
@@ -261,43 +261,43 @@
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.6,
+          "minimum_xy_bead_gap_mm": 4.1,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.585,
+          "minimum_xy_bead_gap_mm": 4.085,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.6,
+          "minimum_xy_bead_gap_mm": 4.1,
           "errors": []
         }
       },
@@ -311,43 +311,43 @@
         "0.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 2.5,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.55,
+          "minimum_xy_bead_gap_mm": 4.05,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.535,
+          "minimum_xy_bead_gap_mm": 4.035,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 6.55,
+          "minimum_xy_bead_gap_mm": 4.05,
           "errors": []
         }
       },
