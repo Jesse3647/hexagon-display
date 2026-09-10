@@ -1,18 +1,27 @@
 """Slice representative 3MFs with Bambu Studio on macOS, without printing.
 
-Usage: python3 scripts/slice-verify.py [sample_stem ...]
+Usage: python3 scripts/slice-verify.py [--wall-generator classic|arachne]
+       [--outer-line-width 0.42] [sample_stem ...]
 Requires the installed BambuStudio.app and files created by validate-models.ts.
-With no arguments, checks all eleven samples; explicit stems select a subset.
+With no arguments, checks all eight samples; explicit stems select a subset.
 Writes temporary profiles, logs, G-code and slicer projects under work/slicing,
 then replaces generated/slicer_report.json with results for this invocation.
+Nondefault wall generator/width comparisons use suffixed folders and reports.
 No saved user presets are edited and no printer is contacted. The report's
 application label records the baseline tested version, not a live version probe.
 """
 from pathlib import Path
-import json, subprocess, sys
+import argparse, json, subprocess, sys
 root = Path(__file__).resolve().parents[1]
 models = root / 'generated'
-work = root / 'work/slicing'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--wall-generator', choices=['classic', 'arachne'], default='classic')
+parser.add_argument('--outer-line-width', choices=['0.42', '0.45'], default='0.42')
+parser.add_argument('samples', nargs='*')
+args = parser.parse_args()
+# Keep the baseline paths stable; comparisons must not overwrite baseline evidence.
+suffix = '' if (args.wall_generator, args.outer_line_width) == ('classic', '0.42') else f'-{args.wall_generator}-{args.outer_line_width}'
+work = root / f'work/slicing{suffix}'
 work.mkdir(parents=True, exist_ok=True)
 app = Path('/Applications/BambuStudio.app/Contents')
 profiles = app / 'Resources/profiles/BBL'
@@ -20,10 +29,14 @@ process = json.loads((profiles/'process/0.20mm Standard @BBL X1C.json').read_tex
 # Copy the bundled process into an isolated temporary profile. Layer-by-layer
 # printing and disabled supports/brims preserve the intended inter-part gaps.
 process.update(name='Honeycomb validation', wall_loops='3', sparse_infill_density='15%', enable_support='0', brim_type='no_brim', print_sequence='by layer')
+# Explicit fixed-width baseline catches retaining features that Arachne can
+# recover automatically. Disable thin-wall detection and slicer elephant-foot
+# compensation: verify the full modeled lips at the bed without slicer shrinkage.
+process.update(wall_generator=args.wall_generator, outer_wall_line_width=args.outer_line_width, inner_wall_line_width='0.45', detect_thin_wall='0', elefant_foot_compensation='0')
 process_path=work/'process.json'
 process_path.write_text(json.dumps(process))
-report={'application':'Bambu Studio 02.08.02.61','profile':{'printer':'Bambu Lab X1 Carbon 0.4 nozzle','material':'Generic PLA','layer_height_mm':0.2,'wall_loops':3,'infill':'15%','supports':False},'physical_validation':False,'models':{}}
-names=sys.argv[1:] or ['closed_pod','all_connectors','half_pod','assembly_3x3','edited_assembly','calibration_in_place_0.20','calibration_in_place_0.10','calibration_in_place_0.15','calibration_separate_0.20','calibration_separate_0.10','calibration_separate_0.15']
+report={'application':'Bambu Studio 02.08.02.61','profile':{'printer':'Bambu Lab X1 Carbon 0.4 nozzle','material':'Generic PLA','layer_height_mm':0.2,'wall_loops':3,'infill':'15%','supports':False,'wall_generator':args.wall_generator,'outer_wall_line_width_mm':float(args.outer_line_width),'inner_wall_line_width_mm':0.45,'thin_wall_detection':False,'elephant_foot_compensation_mm':0},'physical_validation':False,'models':{}}
+names=args.samples or ['closed_pod','all_connectors','half_pod','assembly_3x3','edited_assembly','calibration_separate_0.20','calibration_separate_0.10','calibration_separate_0.15']
 for name in names:
     folder=work/name
     folder.mkdir(exist_ok=True)
@@ -37,11 +50,11 @@ for name in names:
     g=gcode.read_text() if gcode.exists() else ''
     # Exit status alone is insufficient: inspect emitted G-code settings and
     # errors, while reporting harmless CLI warnings separately.
-    expected=['; enable_support = 0','; wall_loops = 3','; layer_height = 0.2','; sparse_infill_density = 15%']
+    expected=['; enable_support = 0','; wall_loops = 3','; layer_height = 0.2','; sparse_infill_density = 15%', f'; wall_generator = {args.wall_generator}', f'; outer_wall_line_width = {args.outer_line_width}', '; inner_wall_line_width = 0.45', '; detect_thin_wall = 0', '; elefant_foot_compensation = 0']
     errors=[line for line in log.splitlines() if '[error]' in line or 'failed' in line.lower()]
     warnings=[line for line in log.splitlines() if '[warning]' in line and 'cli mode' not in line]
     checked=run.returncode==0 and bool(g) and not errors and all(s in g for s in expected)
     report['models'][name]={'success':checked,'returncode':run.returncode,'gcode_bytes':len(g),'sliced_project':(folder/'sliced.3mf').exists(),'settings_verified':all(s in g for s in expected),'warnings':warnings,'errors':errors}
     print(name, 'PASS' if checked else 'FAIL', flush=True)
-(models/'slicer_report.json').write_text(json.dumps(report,indent=2)+'\n')
+(models/f'slicer_report{suffix}.json').write_text(json.dumps(report,indent=2)+'\n')
 if not all(m['success'] for m in report['models'].values()):raise SystemExit(1)

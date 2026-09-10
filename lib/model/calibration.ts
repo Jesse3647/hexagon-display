@@ -1,7 +1,8 @@
 import { zipSync, strToU8 } from 'fflate';
 import {
-  DIM,
+  CONNECTOR_SYSTEM,
   CALIBRATION_FITS,
+  CALIBRATION_HEIGHT,
   initialConfig,
   type Clearances,
   type Configuration,
@@ -12,18 +13,18 @@ import {
 import { GeometryEngine } from './geometry';
 import { exportSTL, export3MF } from './export';
 /**
- * Crops a validated north/south pod joint into two small full-depth fit strips.
+ * Crops a validated short north/south joint into two 8 mm tall fit strips.
+ * Only straight rail length is shortened; XY fit, back, square rail end and stop match the full pod.
  * @param engine Shared engine; borrowed variants are not deleted by this function.
  * @param clearances Wall, connector and front-stop spacings to test (mm).
- * @param separate True offsets the second strip by 20 mm in X; false keeps them interlocked.
- * @returns Export-compatible sample config/result with cropped mesh coordinates baked in.
- * Inherited gap/timing fields describe the source pair, not a new crop validation pass.
+ * @returns Assembled source coupons with cropped coordinates baked in. Both exporters
+ * space these bodies apart on the bed; source geometry keeps the original mating pose.
+ * Inherited gap/timing fields describe the shortened source pair, not the full-depth pods.
  * @throws If the source pair is invalid or cropping fails to produce material.
  */
 export function makeCalibration(
   engine: GeometryEngine,
   clearances: Clearances,
-  separate: boolean,
 ): { config: Configuration; result: ModelResult } {
   const config = {
     ...initialConfig(),
@@ -32,25 +33,25 @@ export function makeCalibration(
     rows: 2,
     clearances,
   };
-  const original = engine.generate(config);
+  const original = engine.generate(config, CALIBRATION_HEIGHT);
   if (original.errors.length) throw new Error(original.errors.join(' '));
-  // Keep only the shared horizontal edge around Y=17, including the back,
-  // full rail depth and front stop. A shallow coupon would miss axial binding.
+  // Build the shorter joint before cropping XY; simply chopping a full pod
+  // at Z=8 would discard the rail end and front stop that calibration must test.
   const baseBox = engine.api.Manifold.cube([
     14,
     8 + clearances.wallGap,
-    DIM.depth + 2,
+    CALIBRATION_HEIGHT + 2,
   ]);
   const crop = baseBox.translate([-7, 13, -1]);
   baseBox.delete();
   const parts: Part[] = [];
   try {
     original.parts.forEach((p, i) => {
-      const v = engine.variant(p, clearances),
+      const v = engine.variant(p, clearances, CALIBRATION_HEIGHT),
         placed = v.solid.translate([p.x, p.y, 0]);
       const cut = placed.intersect(crop);
       placed.delete();
-      const moved = cut.translate([7 + (separate ? i * 20 : 0), -13, 0]);
+      const moved = cut.translate([7, -13, 0]);
       cut.delete();
       if (moved.status() !== 'NoError' || moved.volume() <= 0)
         throw new Error('Calibration sample could not be generated.');
@@ -93,7 +94,7 @@ export function makeCalibration(
       ...original,
       parts,
       layout,
-      dimensions: [separate ? 34 : 14, 8 + clearances.wallGap, DIM.depth],
+      dimensions: [14, 8 + clearances.wallGap, CALIBRATION_HEIGHT],
       triangles: parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0),
     },
   };
@@ -102,27 +103,21 @@ export function makeCalibration(
  * Builds labeled STL/3MF samples at fit clearances 0.10, 0.15 and 0.20 mm.
  * @param engine Geometry cache shared across the three samples.
  * @param config Supplies wallGap and axial clearance; its fit value is replaced per sample.
- * @param separate Selects separately printed strips or pre-interlocked strips.
  * @returns ZIP bytes including printing instructions; performs no download itself.
  */
 export function calibrationZip(
   engine: GeometryEngine,
   config: Configuration,
-  separate: boolean,
 ): Uint8Array {
   const files: Record<string, Uint8Array> = {};
   for (const fit of CALIBRATION_FITS) {
-    const sample = makeCalibration(
-      engine,
-      { ...config.clearances, fit },
-      separate,
-    );
-    const name = `${separate ? 'separate-fit' : 'print-in-place'}-${fit.toFixed(2)}mm`;
+    const sample = makeCalibration(engine, { ...config.clearances, fit });
+    const name = `${CONNECTOR_SYSTEM}-separate-fit-${CALIBRATION_HEIGHT}mm-tall-square-base-fit-${fit.toFixed(2)}mm`;
     files[`${name}.stl`] = exportSTL(sample.result);
     files[`${name}.3mf`] = export3MF(sample.result, sample.config);
   }
   files['READ-ME.txt'] = strToU8(
-    `HONEYCOMB CONNECTOR CALIBRATION\n\nThe filename identifies connector clearance per mating surface: ${CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')} mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\n${separate ? 'The two strips are separated on the bed. Slide the female strip over the tapered end of the male rail until their fronts align.' : 'These two strips print already interlocked. After cooling, slide the female strip toward the open front (+Z) to release it; slide back to reassemble.'}\n\nThese are sliding dovetails, not snap latches. Start with 0.15 mm if 0.20 mm was too loose; use 0.10 mm if more friction is needed. Smaller gaps can fuse in print-in-place samples.\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
+    `HONEYCOMB T-SLOT V2 CALIBRATION\n\nHeight above the bed: ${CALIBRATION_HEIGHT} mm. Square bed edges: full female lips and backing start at Z=0, with no bottom bevel or rail-tip taper. The straight rail is shortened; connector cross-section, back thickness, square rail end and front stop match the pods. This is a quick assembly/fit check, not a test of full-length sliding friction.\n\nThe filename identifies connector clearance per mating surface: ${CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')} mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\nThe two strips print 5 mm apart. After cooling, slide the female strip over the square end of the male rail until their fronts align.\n\nThese are sliding T-slot v2 joints using the original 2 mm walls, with 0.55 mm lips and a thicker head. Print BOTH parts from this revision; do not mix them with v1 T-slots or earlier dovetails. Classic and Arachne have been digitally checked with a 0.4 mm nozzle, 0.20 mm layers, 0.42 mm outer and 0.45 mm inner walls. No thin-wall detection is required in that reference profile. Check that your sliced lips, head and backing remain continuous; other nozzle/line widths need their own check. Start with the separate-fit 0.15 mm pair. Assemble after cooling and check sideways retention while fully engaged. There is no snap latch. Print-in-place is no longer the supported workflow.\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
   );
   return zipSync(files, { level: 6 });
 }

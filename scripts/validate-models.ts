@@ -57,27 +57,22 @@ try {
   }
   // Save individual calibration files as well as ZIPs so the slicer verifier
   // can inspect every clearance without parsing archive instructions.
-  for (const separate of [false, true]) {
+  await writeFile(
+    resolve(destination, 'separate_calibration.zip'),
+    calibrationZip(engine, initialConfig()),
+  );
+  for (const fit of CALIBRATION_FITS) {
+    const { config, result } = makeCalibration(engine, {
+      wallGap: 0.3,
+      fit,
+      axial: 0.4,
+    });
+    const name = `calibration_separate_${fit.toFixed(2)}`;
+    await writeFile(resolve(destination, `${name}.stl`), exportSTL(result));
     await writeFile(
-      resolve(
-        destination,
-        `${separate ? 'separate' : 'in-place'}_calibration.zip`,
-      ),
-      calibrationZip(engine, initialConfig(), separate),
+      resolve(destination, `${name}.3mf`),
+      export3MF(result, config),
     );
-    for (const fit of CALIBRATION_FITS) {
-      const { config, result } = makeCalibration(
-        engine,
-        { wallGap: 0.3, fit, axial: 0.4 },
-        separate,
-      );
-      const name = `calibration_${separate ? 'separate' : 'in_place'}_${fit.toFixed(2)}`;
-      await writeFile(resolve(destination, `${name}.stl`), exportSTL(result));
-      await writeFile(
-        resolve(destination, `${name}.3mf`),
-        export3MF(result, config),
-      );
-    }
   }
   await writeFile(
     resolve(destination, 'geometry_report.json'),

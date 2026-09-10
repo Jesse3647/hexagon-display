@@ -103,25 +103,25 @@
         "0.2": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 4.9785,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 4.9803,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 4.9803,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 4.9803,
           "errors": []
         },
         "20.2": {
@@ -292,7 +292,7 @@
     }
   },
   "physical_validation": false,
-  "wall_generator": "classic",
+  "wall_generator": "arachne",
   "outer_line_width_mm": 0.42,
   "note": "Toolpath checks buffer positive-extrusion moves by half the declared line width on seven sampled layers. Body witnesses from slicer-transformed meshes must map to distinct extrusion-envelope islands. This verifies nominal separated bead envelopes, not extrusion behavior or adhesion on a physical printer."
 }

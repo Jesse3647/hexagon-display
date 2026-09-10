@@ -55,20 +55,35 @@ export class GeometryEngine {
     api.setup();
     return new GeometryEngine(api);
   }
-  /** Cache identity excludes placement and selection: only shape, trim, edges and fit affect a solid. */
-  key(p: Pod, c: Clearances) {
-    return JSON.stringify([p.kind, p.baseTrim, [...p.enabled].sort(), c]);
+  /** Cache identity excludes placement and selection: shape, trim, edges, fit and depth determine a solid. */
+  key(p: Pod, c: Clearances, depth: number = DIM.depth) {
+    return JSON.stringify([
+      p.kind,
+      p.baseTrim,
+      [...p.enabled].sort(),
+      c,
+      depth,
+    ]);
   }
   /**
    * Gets or builds one local pod with integrated rails and solid disabled walls.
    * @param p Shape, enabled edges and base trim; x/y placement is deliberately ignored.
    * @param c Shared calibration clearances in millimeters.
+   * @param depth Back-to-front length (mm); short calibration keeps full-size XY features,
+   * back and stops. Rails retain their full T profile through a square end.
    * @returns Borrowed cache entry; do not delete its handles or modify its mesh.
    * @throws If construction fails or produces anything other than one positive solid.
    * Handles become invalid after eviction or dispose; copied JS arrays remain alive.
    */
-  variant(p: Pod, c: Clearances): Variant {
-    const key = this.key(p, c);
+  variant(p: Pod, c: Clearances, depth: number = DIM.depth): Variant {
+    if (
+      !Number.isFinite(depth) ||
+      depth <= DIM.back + DIM.stop + c.axial
+    )
+      throw new Error(
+        'Depth must leave a rail beyond the back and before the front stop.',
+      );
+    const key = this.key(p, c, depth);
     const cached = this.cache.get(key);
     if (cached) {
       this.cache.delete(key);
@@ -106,10 +121,10 @@ export class GeometryEngine {
       const inner = keep(outer.offset(-DIM.wall, 'Miter', 3));
       const walls = keep(outer.subtract(inner));
       const back = keep(outer.extrude(DIM.back)),
-        wallSolid = keep(walls.extrude(DIM.depth));
+        wallSolid = keep(walls.extrude(depth));
       let body = keep(back.add(wallSolid));
       let earliest = outer;
-      const channelEnd = DIM.depth - DIM.stop,
+      const channelEnd = depth - DIM.stop,
         railEnd = channelEnd - c.axial;
       const railProfiles: CrossSection[] = [];
       for (const edge of p.enabled) {
@@ -122,56 +137,55 @@ export class GeometryEngine {
           ny * (h + y) + tangent[1] * x,
         ];
         if (!isMale(edge)) {
-          // Cavity widens inside the wall; its mouth is deliberately open through
-          // the outer face. The front stop is the only axial obstruction.
-          const section = keep(
-            new CS(
-              (
-                [
-                  [-1.7, 0.05],
-                  [-2.7, -DIM.channelDepth],
-                  [2.7, -DIM.channelDepth],
-                  [1.7, 0.05],
-                ] as Vec2[]
-              ).map(toWorld),
-            ),
-          );
-          const cut = keep(section.extrude(channelEnd + 0.05));
-          const shifted = keep(cut.translate([0, 0, -0.05]));
-          body = keep(body.subtract(shifted));
+          // A straight channel preserves full lip/backing thickness from Z=0.
+          // Extend the cutter below the bed to avoid a coincident bottom face.
+          const points: Vec2[] = [
+            [-DIM.seam / 2, 0.05],
+            [-DIM.seam / 2, -DIM.shoulder],
+            [-DIM.far / 2, -DIM.shoulder],
+            [-DIM.far / 2, -DIM.channelDepth],
+            [DIM.far / 2, -DIM.channelDepth],
+            [DIM.far / 2, -DIM.shoulder],
+            [DIM.seam / 2, -DIM.shoulder],
+            [DIM.seam / 2, 0.05],
+          ];
+          const section = keep(new CS(points.map(toWorld)));
+          const prism = keep(section.extrude(channelEnd + 0.05));
+          const cut = keep(prism.translate([0, 0, -0.05]));
+          body = keep(body.subtract(cut));
           earliest = keep(earliest.subtract(section));
         } else {
-          // Offset the sloping flank by the requested NORMAL distance, not just
-          // an X offset. Extend the throat across the seam and into its own wall.
-          const slope = (DIM.far - DIM.seam) / 2 / DIM.channelDepth;
-          const throat = DIM.seam / 2 - c.fit * Math.sqrt(1 + slope * slope);
-          const reach = DIM.channelDepth - c.fit,
-            tipWidth = throat + slope * reach;
+          // Offset each axis-aligned mating face by fit. The head must clear
+          // both the shoulder and chamber floor, so its thickness loses 2*fit.
+          const throat = DIM.seam / 2 - c.fit;
+          const reach = DIM.channelDepth - c.fit;
+          const headStart = DIM.shoulder + c.fit;
+          const headHalfWidth = DIM.far / 2 - c.fit;
           const local: Vec2[] = [
             [-throat, -0.25],
             [throat, -0.25],
-            [throat, c.wallGap],
-            [tipWidth, c.wallGap + reach],
-            [-tipWidth, c.wallGap + reach],
-            [-throat, c.wallGap],
+            [throat, c.wallGap + headStart],
+            [headHalfWidth, c.wallGap + headStart],
+            [headHalfWidth, c.wallGap + reach],
+            [-headHalfWidth, c.wallGap + reach],
+            [-headHalfWidth, c.wallGap + headStart],
+            [-throat, c.wallGap + headStart],
           ];
           const profile = keep(new CS(local.map(toWorld)));
           railProfiles.push(profile);
-          const shaft = keep(profile.extrude(railEnd - DIM.lead));
-          // Scale about the throat, a point in the polygon's visibility kernel.
-          // A convex hull would fill the concave shoulders and bind tighter fits.
-          const center: Vec2 = [nx * (h + c.wallGap), ny * (h + c.wallGap)];
-          const centered = keep(profile.translate([-center[0], -center[1]]));
-          const scale =
-            1 - DIM.tip / Math.max(tipWidth, c.wallGap + 0.25, reach);
-          const lead = keep(centered.extrude(DIM.lead, 0, 0, [scale, scale]));
-          const taper = keep(
-            lead.translate([center[0], center[1], railEnd - DIM.lead]),
-          );
-          const rail = keep(shaft.add(taper));
+          // Keep the full T cross-section to a square end. Axial clearance
+          // comes from railEnd, so removing the taper does not lengthen the rail.
+          const rail = keep(profile.extrude(railEnd));
           body = keep(body.add(rail));
         }
       }
+      // Rotated channel/rail booleans can leave nearly coincident faces.
+      // Collapse sub-0.00001 mm slivers before
+      // Float32 preview/STL conversion, where they would become zero-area faces.
+      // Drop cutter provenance so simplification can cross coincident seams;
+      // pod colors are assigned by the preview, not inherited from cutter IDs.
+      const unified = keep(body.asOriginal());
+      body = keep(unified.simplify(0.00001));
       const status = body.status();
       if (status !== 'NoError') throw new Error(`Geometry failed: ${status}`);
       const pieces = body.decompose();
@@ -180,17 +194,17 @@ export class GeometryEngine {
       if (count !== 1 || body.volume() <= 0)
         throw new Error('A pod must be one closed solid.');
       // Exact continuous +Z sweep for this construction, for travel >= depth:
-      // every non-channel XY column starts at Z=0 (solid back + rail). Filled
-      // channel columns first appear at the front stop. Taper only removes
-      // material at greater Z. These two extrusions cover every intermediate
-      // position, including collisions missed by discrete movement samples.
+      // The full back/rail footprint is present at Z=0. Filled channel columns
+      // first appear at the front stop. Their delayed extrusion covers every
+      // intermediate position, including front-stop impacts.
       let footprint = earliest;
       for (const profile of railProfiles)
         footprint = keep(footprint.add(profile));
-      const lowerSweep = keep(footprint.extrude(2 * DIM.depth + 2));
-      const cap = keep(outer.extrude(DIM.stop + DIM.depth + 2));
+      const lowerSweep = keep(footprint.extrude(2 * depth + 2));
+      const cap = keep(outer.extrude(DIM.stop + depth + 2));
       const capShift = keep(cap.translate([0, 0, channelEnd]));
-      const sweep = keep(lowerSweep.add(capShift));
+      const upperSweep = keep(lowerSweep.add(capShift));
+      const sweep = keep(upperSweep.add(body));
       const raw = body.getMesh();
       const positions = new Float32Array(raw.numVert * 3);
       for (let i = 0; i < raw.numVert; i++)
@@ -223,17 +237,19 @@ export class GeometryEngine {
   /**
    * Builds separate meshes, then tests assembled clearance and every removal pair.
    * @param config Complete single-pod or assembly input.
+   * @param depth Optional internal calibration length in mm; editor pods use DIM.depth.
+   * Included in both solid and pair cache identities and continuous removal sweeps.
    * @returns Meshes plus blocking errors; invalid solids/configuration may throw instead.
    * The sweep follows the first pod in layout.order against each stationary partner.
    * Positive modeled gaps are digital evidence, not a physical printer guarantee.
    */
-  generate(config: Configuration): ModelResult {
+  generate(config: Configuration, depth: number = DIM.depth): ModelResult {
     const start = performance.now();
     const invalid = validateConfig(config);
     if (invalid.length) throw new Error(invalid.join(' '));
     const layout = makeLayout(config);
     const parts = layout.pods.map((p) => {
-      const v = this.variant(p, config.clearances);
+      const v = this.variant(p, config.clearances, depth);
       return { ...p, mesh: v.mesh, volume: v.volume, bounds: v.bounds };
     });
     const errors: string[] = [];
@@ -255,16 +271,16 @@ export class GeometryEngine {
         if (!nearby) continue;
         const first = (removal.get(a.id) ?? 0) < (removal.get(b.id) ?? 0);
         const key = JSON.stringify([
-          this.key(a, config.clearances),
-          this.key(b, config.clearances),
+          this.key(a, config.clearances, depth),
+          this.key(b, config.clearances, depth),
           +dx.toFixed(7),
           +dy.toFixed(7),
           first,
         ]);
         let check = this.pairCache.get(key);
         if (!check) {
-          const va = this.variant(a, config.clearances),
-            vb = this.variant(b, config.clearances);
+          const va = this.variant(a, config.clearances, depth),
+            vb = this.variant(b, config.clearances, depth);
           const bs = vb.solid.translate([dx, dy, 0]);
           const overlap = va.solid.intersect(bs);
           const moved = first ? va.sweep : vb.sweep.translate([dx, dy, 0]);

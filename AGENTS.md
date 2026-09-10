@@ -37,7 +37,8 @@ current in the same change as the implementation it describes.
 - `lib/model/layout.ts`: grid placement, compatible adjacency and removal graph.
 - `lib/model/geometry.ts`: Manifold solids, cache ownership and continuous sweeps.
 - `lib/model/worker.ts` and `use-model.ts`: worker protocol, debounce and revisions.
-- `lib/model/export.ts` and `calibration.ts`: printable files and calibration samples.
+- `lib/model/export.ts`, `print-layout.ts` and `calibration.ts`: spaced printable files
+  and separate-fit calibration samples.
 - `components/ui/`: reusable starter primitives; prefer composition over rewrites.
 - `scripts/` and `tests/`: digital geometry, export and optional slicing checks.
 
@@ -45,12 +46,17 @@ Distances are millimeters. From the open front, +X points right, +Y points up,
 and +Z points out of the opening; backs sit at Z=0. SVG alone negates Y.
 Keep N/NE/SE male and S/SW/NW female. Half pods have only N/NE/NW edges.
 Preview and export must use the same generated meshes. Preserve separate closed
-pod bodies and assembly transforms; do not fuse adjacent pods to simplify export.
+pod bodies. Keep assembly transforms in the preview; exports use print-layout.ts
+to space parts apart without mutating meshes or preview placement. Store original
+assembly positions in 3MF metadata; do not fuse adjacent pods to simplify export.
 Keep worker replies versioned and never offer stale/invalid meshes for download.
 Cached WASM objects belong to GeometryEngine; delete temporary objects and do not
 transfer or mutate buffers retained by its cache.
 
 ## Verification
+
+Exercise the editor through its visible browser controls when testing user flows.
+Do not add WebMCP tools or inject editor state as a shortcut for browser tests.
 
 Run commands from the repository root with Node.js 22.13+ and pnpm:
 

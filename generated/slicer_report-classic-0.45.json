@@ -8,7 +8,7 @@
     "infill": "15%",
     "supports": false,
     "wall_generator": "classic",
-    "outer_wall_line_width_mm": 0.42,
+    "outer_wall_line_width_mm": 0.45,
     "inner_wall_line_width_mm": 0.45,
     "thin_wall_detection": false,
     "elephant_foot_compensation_mm": 0
@@ -18,88 +18,88 @@
     "closed_pod": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 292989,
+      "gcode_bytes": 287217,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:28.898170] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:36.650861] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "all_connectors": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 739372,
+      "gcode_bytes": 677811,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:29.457123] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:37.059388] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "half_pod": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 520453,
+      "gcode_bytes": 474481,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:29.968377] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:37.535116] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "assembly_3x3": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 5619690,
+      "gcode_bytes": 4993691,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:30.424836] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:37.992815] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "edited_assembly": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 3575951,
+      "gcode_bytes": 3286288,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:31.619784] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:39.128916] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.20": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 154725,
+      "gcode_bytes": 152114,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:32.488141] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:39.966878] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.10": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 153439,
+      "gcode_bytes": 151357,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:32.876786] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:40.352566] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.15": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 157254,
+      "gcode_bytes": 155331,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:33.275472] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:11:40.750448] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     }

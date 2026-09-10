@@ -1,5 +1,11 @@
 import { strToU8, zipSync } from 'fflate';
-import type { Configuration, ModelResult, Part } from './types';
+import { spacePartsForPrinting, PRINT_PART_GAP } from './print-layout';
+import {
+  CONNECTOR_SYSTEM,
+  type Configuration,
+  type ModelResult,
+  type Part,
+} from './types';
 /** Escapes arbitrary names before inserting them into XML attributes. */
 const xml = (text: string) =>
   text.replace(
@@ -29,13 +35,13 @@ export function printableParts(result: ModelResult, group?: number): Part[] {
 }
 /**
  * Serializes binary little-endian STL with one triangle stream of separate shells.
- * @param result Validated meshes; local vertices receive each pod's XY translation.
+ * @param result Validated meshes; local meshes receive export-only spacing; preview positions remain unchanged.
  * @param group Optional zero-based export group; undefined exports all bodies.
  * @returns File bytes. Coordinates are mm, but STL has no standard unit metadata.
  * @throws If printableParts rejects the result or selection.
  */
 export function exportSTL(result: ModelResult, group?: number): Uint8Array {
-  const parts = printableParts(result, group),
+  const parts = spacePartsForPrinting(printableParts(result, group)),
     count = parts.reduce((sum, p) => sum + p.mesh.indices.length / 3, 0);
   // Binary STL: 80-byte header + uint32 triangle count + 50 bytes per facet
   // (normal, three vertices, and an unused uint16 attribute field).
@@ -43,7 +49,7 @@ export function exportSTL(result: ModelResult, group?: number): Uint8Array {
     view = new DataView(bytes.buffer);
   bytes.set(
     new TextEncoder().encode(
-      'Honeycomb Workshop | millimeters | separate pod shells',
+      'Honeycomb Workshop | T-slot v2 | millimeters | separate pod shells',
     ),
   );
   view.setUint32(80, count, true);
@@ -76,18 +82,21 @@ export function exportSTL(result: ModelResult, group?: number): Uint8Array {
 }
 /**
  * Packages a millimeter 3MF model with one mesh object per pod and a parent assembly.
- * @param result Validated meshes; vertices remain local and components carry positions.
+ * @param result Validated meshes; vertices remain local and components carry spaced print positions.
  * @param config Matching source configuration to embed as descriptive metadata.
  * @param group Optional zero-based connected group; undefined includes all pods.
  * @returns ZIP/OPC bytes with model, relationships, content types and configuration.
- * No slicer profiles or G-code are included; separate bodies preserve print-in-place gaps.
+ * No slicer profiles or G-code are included. Pods are spaced for printing, then assembled.
+ * Source assembly positions are retained in JSON metadata for reference.
+ * Metadata records the connector system so T-slot files are distinguishable from dovetails.
  */
 export function export3MF(
   result: ModelResult,
   config: Configuration,
   group?: number,
 ): Uint8Array {
-  const parts = printableParts(result, group);
+  const sourceParts = printableParts(result, group);
+  const parts = spacePartsForPrinting(sourceParts);
   const objects = parts
     .map((p, i) => {
       const vertices: string[] = [];
@@ -112,7 +121,7 @@ export function export3MF(
         `<component objectid="${i + 1}" transform="1 0 0 0 1 0 0 0 1 ${p.x} ${p.y} 0"/>`,
     )
     .join('');
-  const model = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">Honeycomb display</metadata><metadata name="Description">Separate interlocked pods. Keep component positions; print all layers together with backs on the bed.</metadata><resources>${objects}<object id="${parent}" type="model" name="Honeycomb assembly"><components>${components}</components></object></resources><build><item objectid="${parent}"/></build></model>`;
+  const model = `<?xml version="1.0" encoding="UTF-8"?><model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">Honeycomb display</metadata><metadata name="Description">Pods spaced apart for printing. Print layer by layer with backs on the bed; slide together afterward.</metadata><resources>${objects}<object id="${parent}" type="model" name="Honeycomb print layout"><components>${components}</components></object></resources><build><item objectid="${parent}"/></build></model>`;
   return zipSync(
     {
       '[Content_Types].xml': strToU8(
@@ -125,7 +134,23 @@ export function export3MF(
       'Metadata/honeycomb.json': strToU8(
         JSON.stringify(
           {
-            version: 2,
+            version: 5,
+            printLayout: {
+              mode: 'separated',
+              minimumPartGapMm: PRINT_PART_GAP,
+            },
+            // Original preview placement survives the export-only rearrangement.
+            assemblyPositions: sourceParts.map(({ id, x, y }) => ({
+              id,
+              x,
+              y,
+              z: 0,
+            })),
+            connectorSystem: CONNECTOR_SYSTEM,
+            // Record bed treatment separately: mating dimensions still use T-slot v2.
+            // Explicitly identify square bed edges in newly generated files.
+            bedRelief: null,
+            railEnd: 'square',
             config,
             group: group ?? null,
             removalOrder: result.layout.order,
