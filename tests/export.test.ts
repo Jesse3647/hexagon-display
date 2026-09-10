@@ -45,7 +45,10 @@ void test('STL round trip preserves meshes and orientation with export-only spac
   }
 });
 void test('3MF has separate meshes, millimeter units, valid indices and parent transforms', () => {
-  const config: Configuration = { ...initialConfig(), mode: 'assembly' as const },
+  const config: Configuration = {
+      ...initialConfig(),
+      mode: 'assembly' as const,
+    },
     r = engine.generate(config),
     files = unzipSync(export3MF(r, config));
   assert.ok(files['[Content_Types].xml']);
@@ -126,7 +129,7 @@ void test('calibration archives contain three spaced pairs and separate-fit inst
     assert.equal(meta.bedRelief, null);
     assert.equal(meta.railEnd, 'square');
     assert.deepEqual(meta.printLayout, {
-      mode: 'separated',
+      mode: 'exploded',
       minimumPartGapMm: 5,
     });
     const { result } = makeCalibration(engine, {
@@ -169,6 +172,8 @@ function assertSeparated(parts: ReturnType<typeof spacePartsForPrinting>) {
 
 void test('spaced exports preserve the assembled preview, group selection and every mesh', () => {
   for (const [columns, rows] of [
+    [2, 1],
+    [1, 2],
     [1, 4],
     [4, 1],
     [3, 3],
@@ -190,7 +195,26 @@ void test('spaced exports preserve the assembled preview, group selection and ev
     const before = structuredClone(result);
     const printParts = spacePartsForPrinting(result.parts);
     assertSeparated(printParts);
+    // One uniform expansion of the original origins preserves angles, column
+    // stagger, empty cells and filler relationships, even for asymmetric meshes.
+    const a = result.parts[0],
+      b = result.parts[1];
+    const dx = b.x - a.x,
+      dy = b.y - a.y;
+    const scale =
+      Math.abs(dx) > 1e-8
+        ? (printParts[1].x - printParts[0].x) / dx
+        : (printParts[1].y - printParts[0].y) / dy;
+    assert.ok(scale >= 1);
     printParts.forEach((part, i) => {
+      assert.ok(
+        Math.abs(part.x - printParts[0].x - scale * (result.parts[i].x - a.x)) <
+          1e-6,
+      );
+      assert.ok(
+        Math.abs(part.y - printParts[0].y - scale * (result.parts[i].y - a.y)) <
+          1e-6,
+      );
       assert.strictEqual(part.mesh, result.parts[i].mesh);
       assert.deepEqual(part.enabled, result.parts[i].enabled);
       assert.equal(part.bounds.min[2], 0);
@@ -220,5 +244,49 @@ void test('spaced exports preserve the assembled preview, group selection and ev
   assert.equal(
     (strFromU8(archive['3D/3dmodel.model']).match(/<mesh>/g) ?? []).length,
     2,
+  );
+});
+
+void test('2 by 1 export keeps its stagger, cell names and orientation in either part order', () => {
+  const config: Configuration = {
+    ...initialConfig(),
+    mode: 'assembly',
+    columns: 2,
+    rows: 1,
+  };
+  const result = engine.generate(config);
+  const parts = spacePartsForPrinting(result.parts);
+  assertSeparated(parts);
+  assert.ok(parts[1].x > parts[0].x && parts[1].y > parts[0].y);
+  assert.ok(
+    Math.abs(
+      (parts[1].y - parts[0].y) / (parts[1].x - parts[0].x) - 1 / Math.sqrt(3),
+    ) < 1e-8,
+  );
+  assert.deepEqual(
+    spacePartsForPrinting([...result.parts].reverse()).reverse(),
+    parts,
+  );
+  const files = unzipSync(export3MF(result, config));
+  const model = strFromU8(files['3D/3dmodel.model']);
+  assert.match(model, /name="Pod 1\.1 \(full\)"/);
+  assert.match(model, /name="Pod 2\.1 \(full\)"/);
+  const names = strFromU8(files['Metadata/model_settings.config']);
+  assert.match(
+    names,
+    /<part id="1" subtype="normal_part"><metadata key="name" value="Pod 1\.1 \(full\)"\/>/,
+  );
+  assert.match(
+    names,
+    /<part id="2" subtype="normal_part"><metadata key="name" value="Pod 2\.1 \(full\)"\/>/,
+  );
+  assert.doesNotMatch(names, /extruder|layer_height|filament|printer/);
+  const configWithFiller = { ...config, flatBase: true };
+  const fillerFiles = unzipSync(
+    export3MF(engine.generate(configWithFiller), configWithFiller),
+  );
+  assert.match(
+    strFromU8(fillerFiles['3D/3dmodel.model']),
+    /name="Column 2 bottom filler"/,
   );
 });

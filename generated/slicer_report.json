@@ -22,7 +22,7 @@
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:28.898170] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:17.180478] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
@@ -33,7 +33,7 @@
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:29.457123] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:17.649525] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
@@ -44,62 +44,73 @@
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:29.968377] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:18.171861] [0x00000001f8faa180] [warning] no filament colors found in projects"
+      ],
+      "errors": []
+    },
+    "assembly_2x1": {
+      "success": true,
+      "returncode": 0,
+      "gcode_bytes": 693494,
+      "sliced_project": true,
+      "settings_verified": true,
+      "warnings": [
+        "[2026-09-09 22:36:18.657020] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "assembly_3x3": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 5619690,
+      "gcode_bytes": 5785989,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:30.424836] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:19.172137] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "edited_assembly": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 3575951,
+      "gcode_bytes": 3643016,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:31.619784] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:20.459601] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.20": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 154725,
+      "gcode_bytes": 152130,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:32.488141] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:21.380679] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.10": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 153439,
+      "gcode_bytes": 160077,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:32.876786] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:21.798510] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     },
     "calibration_separate_0.15": {
       "success": true,
       "returncode": 0,
-      "gcode_bytes": 157254,
+      "gcode_bytes": 155354,
       "sliced_project": true,
       "settings_verified": true,
       "warnings": [
-        "[2026-09-09 22:11:33.275472] [0x00000001f8faa180] [warning] no filament colors found in projects"
+        "[2026-09-09 22:36:22.227971] [0x00000001f8faa180] [warning] no filament colors found in projects"
       ],
       "errors": []
     }

@@ -29,6 +29,8 @@ args=parser.parse_args()
 # Match the profile-specific output paths from slice-verify.py.
 suffix='' if (args.wall_generator,args.outer_line_width)==('classic','0.42') else f'-{args.wall_generator}-{args.outer_line_width}'
 report={'mesh_checks':{},'sampled_toolpath_checks':{},'physical_validation':False,'wall_generator':args.wall_generator,'outer_line_width_mm':float(args.outer_line_width)}
+export_centers={}
+export_names={}
 ns={'m':'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'}
 # Compare separately loaded STL shells against positioned 3MF components.
 # Counting build items alone would mistake the parent assembly for one fused pod.
@@ -46,11 +48,13 @@ for file in sorted(models.glob('*.stl')):
             vertices=np.array([[float(v.attrib[k]) for k in ['x','y','z']] for v in body.findall('m:vertices/m:vertex',ns)])
             triangles=np.array([[int(t.attrib[k]) for k in ['v1','v2','v3']] for t in body.findall('m:triangles/m:triangle',ns)])
             source[obj.attrib['id']]=trimesh.Trimesh(vertices,triangles,process=True)
+        export_names[file.stem]=[obj.attrib['name'] for obj in model.findall('m:resources/m:object',ns) if obj.find('m:mesh',ns) is not None]
         posed=[]
         for component in model.findall('m:resources/m:object/m:components/m:component',ns):
             m=source[component.attrib['objectid']].copy()
             transform=np.array(list(map(float,component.attrib['transform'].split()))).reshape(4,3).T
             matrix=np.eye(4);matrix[:3,:]=transform;m.apply_transform(matrix);posed.append(m)
+        export_centers[file.stem]=np.array([m.bounds.mean(axis=0) for m in posed])
         joined=trimesh.util.concatenate(posed)
         agreement=np.allclose(mesh.bounds,joined.bounds,atol=1e-4) and abs(mesh.volume-joined.volume)<.01
     report['mesh_checks'][file.stem]={'success':bool(checked and agreement and len(parts)==len(posed)),'closed_bodies':len(parts),'stl_3mf_agree':bool(agreement),'minimum_z':float(mesh.bounds[0,2])}
@@ -59,11 +63,13 @@ for file in sorted(models.glob('*.stl')):
 # This selection supplements the exact solid sweep checks; it is not exhaustive.
 pod_samples={.2,2.4,10.,19.8,20.2,20.6,22.}
 calibration_samples={.2,2.4,4.,5.8,6.2,6.6,8.}
-for name in ['assembly_3x3','edited_assembly','calibration_separate_0.10','calibration_separate_0.15','calibration_separate_0.20']:
+for name in ['assembly_2x1','assembly_3x3','edited_assembly','calibration_separate_0.10','calibration_separate_0.15','calibration_separate_0.20']:
     samples=calibration_samples if name.startswith('calibration_') else pod_samples
     file=root/f'work/slicing{suffix}'/name/'plate_1.gcode'
     # Read slicer-owned transforms, including its recentering of each part.
     with zipfile.ZipFile(file.parent/'sliced.3mf') as archive:
+        named_parts=ET.fromstring(archive.read('Metadata/model_settings.config')).findall('object/part/metadata[@key="name"]')
+        names_preserved=[part.attrib['value'] for part in named_parts]==export_names[name]
         tree=ET.fromstring(archive.read('3D/3dmodel.model'))
         item=tree.find('m:build/m:item',ns)
         def transform(text):
@@ -84,6 +90,12 @@ for name in ['assembly_3x3','edited_assembly','calibration_separate_0.10','calib
             vertices=np.array([[float(v.attrib[k]) for k in ['x','y','z']] for v in body.findall('m:mesh/m:vertices/m:vertex',ns)])
             faces=np.array([[int(t.attrib[k]) for k in ['v1','v2','v3']] for t in body.findall('m:mesh/m:triangles/m:triangle',ns)])
             mesh=trimesh.Trimesh(vertices,faces,process=True);mesh.apply_transform(build@transform(comp.attrib['transform']));bodies.append(mesh)
+    # Import may translate the parent onto the bed, but must preserve every
+    # relative position. Compare body centers after resolving slicer transforms.
+    expected_centers=export_centers[name]
+    sliced_centers=np.array([body.bounds.mean(axis=0) for body in bodies])
+    positions_preserved=bool(expected_centers.shape==sliced_centers.shape and np.allclose(
+        expected_centers-expected_centers[0], sliced_centers-sliced_centers[0], atol=1e-4))
     code=file.read_text()
     offsets=re.search(r'; extruder_offset = ([^\n]+)',code)
     offset=np.array(list(map(float,offsets[1].split(';')[0].split('x')))) if offsets else np.zeros(2)
@@ -175,7 +187,7 @@ for name in ['assembly_3x3','edited_assembly','calibration_separate_0.10','calib
                 distances.append(distance)
         if distances and min(distances) < 4.8: errors.append('Printed bead envelopes do not retain the nominal 5 mm spacing (0.2 mm check tolerance).')
         layers[str(height)]={'expected_bodies':len(bodies),'distinct_extruded_bodies':len(set(matched)),'minimum_xy_bead_gap_mm':round(min(distances),4) if distances else None,'errors':errors}
-    report['sampled_toolpath_checks'][name]={'sampled_layers':layers,'unsupported_arcs':arcs,'success':arcs==0 and all(not l['errors'] for l in layers.values())}
+    report['sampled_toolpath_checks'][name]={'sampled_layers':layers,'unsupported_arcs':arcs,'relative_positions_preserved':positions_preserved,'part_names_preserved':names_preserved,'success':names_preserved and positions_preserved and arcs==0 and all(not l['errors'] for l in layers.values())}
 report['note']='Toolpath checks buffer positive-extrusion moves by half the declared line width on seven sampled layers. Body witnesses from slicer-transformed meshes must map to distinct extrusion-envelope islands. This verifies nominal separated bead envelopes, not extrusion behavior or adhesion on a physical printer.'
 (models/f'independent_report{suffix}.json').write_text(json.dumps(report,indent=2)+'\n')
 for section in ['mesh_checks','sampled_toolpath_checks']:

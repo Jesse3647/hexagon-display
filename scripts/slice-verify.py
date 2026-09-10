@@ -3,7 +3,7 @@
 Usage: python3 scripts/slice-verify.py [--wall-generator classic|arachne]
        [--outer-line-width 0.42] [sample_stem ...]
 Requires the installed BambuStudio.app and files created by validate-models.ts.
-With no arguments, checks all eight samples; explicit stems select a subset.
+With no arguments, checks all nine samples; explicit stems select a subset.
 Writes temporary profiles, logs, G-code and slicer projects under work/slicing,
 then replaces generated/slicer_report.json with results for this invocation.
 Nondefault wall generator/width comparisons use suffixed folders and reports.
@@ -36,13 +36,15 @@ process.update(wall_generator=args.wall_generator, outer_wall_line_width=args.ou
 process_path=work/'process.json'
 process_path.write_text(json.dumps(process))
 report={'application':'Bambu Studio 02.08.02.61','profile':{'printer':'Bambu Lab X1 Carbon 0.4 nozzle','material':'Generic PLA','layer_height_mm':0.2,'wall_loops':3,'infill':'15%','supports':False,'wall_generator':args.wall_generator,'outer_wall_line_width_mm':float(args.outer_line_width),'inner_wall_line_width_mm':0.45,'thin_wall_detection':False,'elephant_foot_compensation_mm':0},'physical_validation':False,'models':{}}
-names=args.samples or ['closed_pod','all_connectors','half_pod','assembly_3x3','edited_assembly','calibration_separate_0.20','calibration_separate_0.10','calibration_separate_0.15']
+names=args.samples or ['closed_pod','all_connectors','half_pod','assembly_2x1','assembly_3x3','edited_assembly','calibration_separate_0.20','calibration_separate_0.10','calibration_separate_0.15']
 for name in names:
     folder=work/name
     folder.mkdir(exist_ok=True)
+    # Center the parent on the plate but disable arrange rotation, preserving
+    # the editor’s staggered front-view arrangement and all component positions.
     # Bambu resolves the output project name relative to cwd/outputdir; keep the
     # filename relative to avoid duplicating an absolute path during project save.
-    command=[str(app/'MacOS/BambuStudio'),'--debug','2','--load-settings',str(profiles/'machine/Bambu Lab X1 Carbon 0.4 nozzle.json')+';'+str(process_path),'--load-filaments',str(profiles/'filament/Generic PLA.json'),'--arrange','1','--orient','0','--slice','0','--export-3mf','sliced.3mf','--outputdir',str(folder),str(models/(name+'.3mf'))]
+    command=[str(app/'MacOS/BambuStudio'),'--debug','2','--load-settings',str(profiles/'machine/Bambu Lab X1 Carbon 0.4 nozzle.json')+';'+str(process_path),'--load-filaments',str(profiles/'filament/Generic PLA.json'),'--arrange','1','--allow-rotations=0','--orient','0','--slice','0','--export-3mf','sliced.3mf','--outputdir',str(folder),str(models/(name+'.3mf'))]
     run=subprocess.run(command,capture_output=True,text=True,timeout=90,cwd=folder)
     log=run.stdout+run.stderr
     (folder/'log.txt').write_text(log)

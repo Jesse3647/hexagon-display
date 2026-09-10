@@ -34,7 +34,7 @@ Run generation and slicing before the independent checker. Pass `--wall-generato
 
 The reference profile uses an X1 Carbon with a 0.4 mm nozzle, Generic PLA, 0.20 mm layers, three walls, 15% infill, and no supports or brim. The baseline uses Classic, 0.42 mm outer walls, 0.45 mm inner walls, 0.40 mm first-layer lines, thin-wall detection off, and zero elephant-foot compensation. These settings are not embedded in exported model files.
 
-The reports check closed bodies, export positions, sampled extrusion gaps, and material at retaining features. Passing these digital checks does not establish physical fit or repeated reassembly; print calibration samples on the intended printer and material.
+The reports check closed bodies, export positions (including the staggered 2 × 1 layout and cell names after slicer import), sampled extrusion gaps, and material at retaining features. Passing these digital checks does not establish physical fit or repeated reassembly; print calibration samples on the intended printer and material.
 
 ## License copies
 

@@ -44,6 +44,21 @@
       ],
       "errors": []
     },
+    "assembly_2x1": {
+      "bodies": 2,
+      "triangles": 152,
+      "dimensions": [
+        68.96448965041105,
+        51.15,
+        22.05
+      ],
+      "minGap": 0.14999999529131092,
+      "removalOrder": [
+        "1,0",
+        "0,0"
+      ],
+      "errors": []
+    },
     "assembly_3x3": {
       "bodies": 10,
       "triangles": 1640,

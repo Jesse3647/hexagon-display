@@ -25,12 +25,13 @@ const report: Record<string, unknown> = {
   models: {},
 };
 try {
-  // Include the closed/full/half extremes and two layouts that exercise fillers,
+  // Include the closed/full/half extremes and layouts that exercise stagger, fillers,
   // holes and half substitutions. Exhaustive connector masks belong in the tests.
   const cases: Record<string, Configuration> = {
     closed_pod: initialConfig(),
     all_connectors: { ...initialConfig(), enabled: [...EDGES] },
     half_pod: { ...initialConfig(), kind: 'half', enabled: ['N', 'NE', 'NW'] },
+    assembly_2x1: { ...initialConfig(), mode: 'assembly', columns: 2, rows: 1 },
     assembly_3x3: { ...initialConfig(), mode: 'assembly', flatBase: true },
     edited_assembly: {
       ...initialConfig(),

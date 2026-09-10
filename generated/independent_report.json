@@ -6,6 +6,12 @@
       "stl_3mf_agree": true,
       "minimum_z": 0.0
     },
+    "assembly_2x1": {
+      "success": true,
+      "closed_bodies": 2,
+      "stl_3mf_agree": true,
+      "minimum_z": 0.0
+    },
     "assembly_3x3": {
       "success": true,
       "closed_bodies": 10,
@@ -50,52 +56,104 @@
     }
   },
   "sampled_toolpath_checks": {
+    "assembly_2x1": {
+      "sampled_layers": {
+        "0.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 15.5071,
+          "errors": []
+        },
+        "2.4": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 15.5067,
+          "errors": []
+        },
+        "10.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 15.5067,
+          "errors": []
+        },
+        "19.8": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 15.5067,
+          "errors": []
+        },
+        "20.2": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 17.1065,
+          "errors": []
+        },
+        "20.6": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 17.0919,
+          "errors": []
+        },
+        "22.0": {
+          "expected_bodies": 2,
+          "distinct_extruded_bodies": 2,
+          "minimum_xy_bead_gap_mm": 17.1065,
+          "errors": []
+        }
+      },
+      "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
+      "success": true
+    },
     "assembly_3x3": {
       "sampled_layers": {
         "0.2": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.506,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.506,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.506,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.506,
           "errors": []
         },
         "20.2": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.064,
+          "minimum_xy_bead_gap_mm": 17.1059,
           "errors": []
         },
         "20.6": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.064,
+          "minimum_xy_bead_gap_mm": 17.0909,
           "errors": []
         },
         "22.0": {
           "expected_bodies": 10,
           "distinct_extruded_bodies": 10,
-          "minimum_xy_bead_gap_mm": 5.064,
+          "minimum_xy_bead_gap_mm": 17.106,
           "errors": []
         }
       },
       "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
       "success": true
     },
     "edited_assembly": {
@@ -103,47 +161,49 @@
         "0.2": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.507,
           "errors": []
         },
         "2.4": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.5065,
           "errors": []
         },
         "10.0": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.5063,
           "errors": []
         },
         "19.8": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.0,
+          "minimum_xy_bead_gap_mm": 15.5065,
           "errors": []
         },
         "20.2": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.065,
+          "minimum_xy_bead_gap_mm": 17.106,
           "errors": []
         },
         "20.6": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.065,
+          "minimum_xy_bead_gap_mm": 17.0909,
           "errors": []
         },
         "22.0": {
           "expected_bodies": 8,
           "distinct_extruded_bodies": 8,
-          "minimum_xy_bead_gap_mm": 5.065,
+          "minimum_xy_bead_gap_mm": 17.106,
           "errors": []
         }
       },
       "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
       "success": true
     },
     "calibration_separate_0.10": {
@@ -163,35 +223,37 @@
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.65,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.635,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.65,
           "errors": []
         }
       },
       "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
       "success": true
     },
     "calibration_separate_0.15": {
@@ -211,35 +273,37 @@
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.6,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.585,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.6,
           "errors": []
         }
       },
       "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
       "success": true
     },
     "calibration_separate_0.20": {
@@ -259,35 +323,37 @@
         "4.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "5.8": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 5.0,
           "errors": []
         },
         "6.2": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.55,
           "errors": []
         },
         "6.6": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.535,
           "errors": []
         },
         "8.0": {
           "expected_bodies": 2,
           "distinct_extruded_bodies": 2,
-          "minimum_xy_bead_gap_mm": 5.0176,
+          "minimum_xy_bead_gap_mm": 6.55,
           "errors": []
         }
       },
       "unsupported_arcs": 0,
+      "relative_positions_preserved": true,
+      "part_names_preserved": true,
       "success": true
     }
   },

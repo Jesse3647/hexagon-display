@@ -47,7 +47,8 @@ and +Z points out of the opening; backs sit at Z=0. SVG alone negates Y.
 Keep N/NE/SE male and S/SW/NW female. Half pods have only N/NE/NW edges.
 Preview and export must use the same generated meshes. Preserve separate closed
 pod bodies. Keep assembly transforms in the preview; exports use print-layout.ts
-to space parts apart without mutating meshes or preview placement. Store original
+to expand assembly positions uniformly without mutating meshes or preview placement.
+Preserve column stagger, holes, filler placement and the editor’s one-based cell labels. Store original
 assembly positions in 3MF metadata; do not fuse adjacent pods to simplify export.
 Keep worker replies versioned and never offer stale/invalid meshes for download.
 Cached WASM objects belong to GeometryEngine; delete temporary objects and do not
