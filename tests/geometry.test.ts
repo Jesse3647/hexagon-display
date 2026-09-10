@@ -12,6 +12,7 @@ import {
   CALIBRATION_FITS,
   DIM,
   initialConfig,
+  isBottomRowCell,
   type Pod,
   type Configuration,
 } from '../lib/model/types';
@@ -297,7 +298,10 @@ void test('square-ended rails preserve release and stops in short calibration an
         missing.area() < 1e-6 && extra.area() < 1e-6,
         `fit=${fit}, depth=${depth}: missing=${missing.area()}, extra=${extra.area()}`,
       );
-      assert.ok(end.area() > beyond.area(), 'rail must end before the front stop');
+      assert.ok(
+        end.area() > beyond.area(),
+        'rail must end before the front stop',
+      );
       missing.delete();
       extra.delete();
       shaft.delete();
@@ -357,10 +361,63 @@ void test('square bed edges retain full female lips and backing from the first l
         }
         upper.delete();
         const outside = solid.subtract(sweep);
-        assert.ok(outside.volume() < 1e-8, 'sweep must contain the entire starting body');
+        assert.ok(
+          outside.volume() < 1e-8,
+          'sweep must contain the entire starting body',
+        );
         outside.delete();
       }
       placed.delete();
     }
   }
+});
+
+void test('assembly half pods are restricted to row 1 regardless of holes or column stagger', () => {
+  const config: Configuration = {
+    ...initialConfig(),
+    mode: 'assembly',
+    columns: 2,
+    rows: 3,
+  };
+  for (const column of [0, 1]) {
+    assert.equal(isBottomRowCell(`${column},0`), true);
+    const bottom = { ...config, cells: { [`${column},0`]: 'half' as const } };
+    assert.deepEqual(engine.generate(bottom).errors, []);
+    for (const row of [1, 2]) {
+      assert.equal(isBottomRowCell(`${column},${row}`), false);
+      for (const below of ['full', 'empty'] as const) {
+        const invalid = {
+          ...config,
+          cells: {
+            [`${column},0`]: below,
+            [`${column},${row}`]: 'half' as const,
+          },
+        };
+        assert.throws(
+          () => makeLayout(invalid),
+          /Half pods are only allowed in the bottom row/,
+        );
+        assert.throws(
+          () => engine.generate(invalid),
+          /Half pods are only allowed in the bottom row/,
+        );
+      }
+    }
+  }
+  assert.equal(isBottomRowCell('base-1'), false);
+  // Single-pod mode ignores the assembly's stored cell edits.
+  assert.deepEqual(
+    engine.generate({
+      ...config,
+      mode: 'single',
+      kind: 'half',
+      cells: { '0,2': 'half' },
+    }).errors,
+    [],
+  );
+  assert.ok(
+    makeLayout({ ...config, flatBase: true }).pods.some(
+      (p) => p.filler && p.kind === 'half',
+    ),
+  );
 });

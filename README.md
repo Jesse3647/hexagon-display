@@ -31,7 +31,7 @@ Use **Single pod** to make one full hexagon or the upper-half pod. Start with so
 
 ### 2. Build an assembly
 
-Switch to **Assembly** and set **Across** and **Tall**. The layout uses staggered columns; Tall counts full-pod cells in each column. Select a cell to remove it, restore it, or change it to a half pod. **Add flat-bottom fillers** fills the short gaps beneath raised columns.
+Switch to **Assembly** and set **Across** and **Tall**. The layout uses staggered columns; Tall counts full-pod cells in each column. Select a cell to remove or restore it. Only bottom-row cells (row 1) can be changed to half pods. **Add flat-bottom fillers** fills the short gaps beneath raised columns.
 
 ![Assembly layout with five columns, two rows, a selected cell and flat-bottom fillers enabled](docs/images/assembly-layout.png)
 

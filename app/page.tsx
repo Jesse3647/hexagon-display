@@ -50,6 +50,7 @@ import {
   CALIBRATION_HEIGHT,
   availableEdges,
   isMale,
+  isBottomRowCell,
   type Configuration,
   type Edge,
   type CellKind,
@@ -415,7 +416,11 @@ export default function Home() {
                       }
                       options={[
                         ['full', 'Full pod'],
-                        ['half', 'Half pod'],
+                        // Share the model's row rule; removing cells below does not
+                        // turn an upper row into a valid half-pod position.
+                        ...(isBottomRowCell(selected)
+                          ? ([['half', 'Half pod']] as [string, string][])
+                          : []),
                         ['empty', 'Remove pod'],
                       ]}
                     />

@@ -87,7 +87,7 @@ export interface Configuration {
   columns: number;
   /** Full-pod cell count per column, an integer from 1 through 20. */
   rows: number;
-  /** Sparse zero-based "column,row" edits; absent entries mean full pods. */
+  /** Sparse zero-based "column,row" edits; absent entries mean full pods. Half pods require row 0. */
   cells: Record<string, CellKind>;
   /** Adds upper-half fillers where they can reach the assembly floor. */
   flatBase: boolean;
@@ -189,10 +189,16 @@ export interface ModelResult {
 /** Returns only physically present connector edges for a shape. */
 export const availableEdges = (kind: PodKind): readonly Edge[] =>
   kind === 'half' ? HALF_EDGES : EDGES;
+/**
+ * Whether a grid cell may become an upper-half pod: only row 0 (displayed as 1).
+ * Holes do not shift the bottom row. Automatic fillers and single pods use separate rules.
+ * @param id Zero-based "column,row" grid ID; non-grid IDs return false.
+ */
+export const isBottomRowCell = (id: string): boolean => /^\d+,0$/.test(id);
 /** Tests the fixed connector gender; does not depend on a pod or camera pose. */
 export const isMale = (edge: Edge) => MALE.includes(edge);
 /**
- * Checks supported modes, shapes, numeric ranges and collection values.
+ * Checks supported modes, shapes, numeric ranges, collection values and bottom-row half placement.
  * @param c Candidate configuration, also checked at runtime at external boundaries.
  * @returns User-readable errors; an empty array means these input checks passed.
  * Does not prove mesh validity, sanitize cell keys, or check connector collisions.
@@ -230,6 +236,13 @@ export function validateConfig(c: Configuration): string[] {
     Object.values(c.cells).some((k) => !['full', 'half', 'empty'].includes(k))
   )
     errors.push('Invalid layout cell.');
+  else if (
+    c.mode === 'assembly' &&
+    Object.entries(c.cells).some(
+      ([id, kind]) => kind === 'half' && !isBottomRowCell(id),
+    )
+  )
+    errors.push('Half pods are only allowed in the bottom row (row 1).');
   if (
     !c.overrides ||
     Object.values(c.overrides).some((v) => typeof v !== 'boolean')
