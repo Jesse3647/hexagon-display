@@ -2,7 +2,7 @@
 
 Design a modular honeycomb display, customize its connectors, and download STL or 3MF files for printing. Build one pod or an interlocking assembly, with solid walls wherever connectors are switched off.
 
-**[Open the Honeycomb Workshop](https://jesse3647.github.io/hexagon-display/)**
+_Want to try it out?_ **[Open the Honeycomb Workshop](https://jesse3647.github.io/hexagon-display/)**
 
 ![Generated honeycomb display with ten full pods and two flat-bottom half fillers](docs/images/generated-display.png)
 
