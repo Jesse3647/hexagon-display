@@ -21,17 +21,6 @@ Open the Local URL printed in the terminal, normally http://127.0.0.1:3000. On m
 
 For a production build, run `pnpm build`, then `pnpm start`. Previews and downloads run on your device; no account or external geometry service is needed.
 
-## GitHub Pages
-
-Merges to `main` are checked, built as a static site, and deployed to
-[jesse3647.github.io/hexagon-display](https://jesse3647.github.io/hexagon-display/)
-by the Pages workflow. Repository administrators must select **GitHub Actions**
-as the source under **Settings → Pages** before the first deployment.
-
-The hosted editor runs entirely in the browser. To reproduce its Pages artifact
-locally, set `NEXT_PUBLIC_BASE_PATH=/hexagon-display`, run `pnpm build`, then run
-`pnpm prepare:pages`; the publishable files are written to `dist/pages`.
-
 ## Editor walkthrough
 
 On desktop, the model stays in view on the left while the configuration panel scrolls on the right. On smaller screens, the sections stack vertically.
