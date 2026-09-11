@@ -119,9 +119,12 @@ void test('export rejects invalid geometry and can select a disconnected group',
 void test('calibration archives contain three spaced pairs and separate-fit instructions', () => {
   const files = unzipSync(calibrationZip(engine, initialConfig()));
   assert.equal(Object.keys(files).length, 7);
-  assert.match(strFromU8(files['READ-ME.txt']), /two strips print 2\.5 mm apart/);
+  assert.match(
+    strFromU8(files['READ-ME.txt']),
+    /two strips print 2\.5 mm apart/,
+  );
   for (const fit of [0.1, 0.15, 0.2]) {
-    const stem = `t-slot-v2-separate-fit-8mm-tall-square-base-fit-${fit.toFixed(2)}mm`;
+    const stem = `t-slot-v2-separate-fit-22.05mm-tall-square-base-fit-${fit.toFixed(2)}mm`;
     assert.ok(files[`${stem}.stl`]);
     const sample = unzipSync(files[`${stem}.3mf`]);
     const meta = JSON.parse(strFromU8(sample['Metadata/honeycomb.json']));
@@ -139,12 +142,12 @@ void test('calibration archives contain three spaced pairs and separate-fit inst
     });
     assert.equal(result.parts.length, 2);
     assert.deepEqual(result.errors, []);
-    assert.deepEqual(result.dimensions, [14, 8.3, 8]);
+    assert.deepEqual(result.dimensions, [14, 8.3, 22.05]);
     const printParts = spacePartsForPrinting(result.parts);
     assertSeparated(printParts);
     for (const p of printParts) {
       assert.equal(p.bounds.min[2], 0);
-      assert.equal(p.bounds.max[2], 8);
+      assert.equal(p.bounds.max[2], 22.05);
     }
   }
 });

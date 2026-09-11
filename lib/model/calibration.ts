@@ -14,13 +14,13 @@ import { GeometryEngine } from './geometry';
 import { exportSTL, export3MF } from './export';
 import { PRINT_PART_GAP } from './print-layout';
 /**
- * Crops a validated short north/south joint into two 8 mm tall fit strips.
- * Only straight rail length is shortened; XY fit, back, square rail end and stop match the full pod.
+ * Crops a validated north/south joint into two narrow, full-height fit strips.
+ * Connector length, XY fit, back, square rail end and stop match the full pod.
  * @param engine Shared engine; borrowed variants are not deleted by this function.
  * @param clearances Wall, connector and front-stop spacings to test (mm).
  * @returns Assembled source coupons with cropped coordinates baked in. Both exporters
  * space these bodies apart on the bed; source geometry keeps the original mating pose.
- * Inherited gap/timing fields describe the shortened source pair, not the full-depth pods.
+ * Inherited gap/timing fields describe the full-depth source pair before its XY crop.
  * @throws If the source pair is invalid or cropping fails to produce material.
  */
 export function makeCalibration(
@@ -36,8 +36,8 @@ export function makeCalibration(
   };
   const original = engine.generate(config, CALIBRATION_HEIGHT);
   if (original.errors.length) throw new Error(original.errors.join(' '));
-  // Build the shorter joint before cropping XY; simply chopping a full pod
-  // at Z=8 would discard the rail end and front stop that calibration must test.
+  // Crop only in XY. Keeping the full print height reproduces the connector's
+  // actual contact length and any dimensional variation accumulated along Z.
   const baseBox = engine.api.Manifold.cube([
     14,
     8 + clearances.wallGap,
@@ -118,7 +118,7 @@ export function calibrationZip(
     files[`${name}.3mf`] = export3MF(sample.result, sample.config);
   }
   files['READ-ME.txt'] = strToU8(
-    `HONEYCOMB T-SLOT V2 CALIBRATION\n\nHeight above the bed: ${CALIBRATION_HEIGHT} mm. Square bed edges: full female lips and backing start at Z=0, with no bottom bevel or rail-tip taper. The straight rail is shortened; connector cross-section, back thickness, square rail end and front stop match the pods. This is a quick assembly/fit check, not a test of full-length sliding friction.\n\nThe filename identifies connector clearance per mating surface: ${CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')} mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\nThe two strips print ${PRINT_PART_GAP} mm apart. After cooling, slide the female strip over the square end of the male rail until their fronts align.\n\nThese are sliding T-slot v2 joints using the original 2 mm walls, with 0.55 mm lips and a thicker head. Print BOTH parts from this revision; do not mix them with v1 T-slots or earlier dovetails. Classic and Arachne have been digitally checked with a 0.4 mm nozzle, 0.20 mm layers, 0.42 mm outer and 0.45 mm inner walls. No thin-wall detection is required in that reference profile. Check that your sliced lips, head and backing remain continuous; other nozzle/line widths need their own check. Start with the separate-fit 0.15 mm pair. Assemble after cooling and check sideways retention while fully engaged. There is no snap latch. Print-in-place is no longer the supported workflow.\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
+    `HONEYCOMB T-SLOT V2 CALIBRATION\n\nHeight above the bed: ${CALIBRATION_HEIGHT} mm, matching a full pod. Square bed edges: full female lips and backing start at Z=0, with no bottom bevel or rail-tip taper. Connector contact length, cross-section, back thickness, square rail end and front stop match the pods; only the surrounding hexagon walls are cropped to narrow strips. This makes the sample slower than the former short coupon, but gives a representative full-length sliding-friction test.\n\nThe filename identifies connector clearance per mating surface: ${CALIBRATION_FITS.map((fit) => fit.toFixed(2)).join(', ')} mm. Print one labeled file at a time to keep samples identified.\n\nWall gap: ${config.clearances.wallGap.toFixed(2)} mm. Front-stop clearance: ${config.clearances.axial.toFixed(2)} mm.\n\nUse the printer, material, nozzle and layer profile intended for your display. Print flat backs on the bed, all layers together, supports OFF. Preserve all component positions. Do not use automatic gap closing or merge separate bodies. Compensate elephant foot as appropriate for your calibrated slicer profile.\n\nThe two strips print ${PRINT_PART_GAP} mm apart. After cooling, slide the female strip over the square end of the male rail until their fronts align.\n\nThese are sliding T-slot v2 joints using the original 2 mm walls, with 0.55 mm lips and a thicker head. Print BOTH parts from this revision; do not mix them with v1 T-slots or earlier dovetails. Classic and Arachne have been digitally checked with a 0.4 mm nozzle, 0.20 mm layers, 0.42 mm outer and 0.45 mm inner walls. No thin-wall detection is required in that reference profile. Check that your sliced lips, head and backing remain continuous; other nozzle/line widths need their own check. Start with the separate-fit 0.15 mm pair. Assemble after cooling and check sideways retention while fully engaged. There is no snap latch. Print-in-place is no longer the supported workflow.\n\nChoose the smallest clearance that releases and slides comfortably without tools. Do not force a binding joint. Repeat assembly several times and check for cracking or excessive looseness. Apply the chosen settings to BOTH single pods and assemblies.\n\nThese are geometry-validated starting points, not a claim of physical validation on your printer. STL uses millimeters; 3MF preserves the separate parts and positions.\n`,
   );
   return zipSync(files, { level: 6 });
 }

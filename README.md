@@ -74,9 +74,9 @@ Downloads stay disabled while the model is updating or invalid. If a layout cont
 
 ### 7. Download calibration samples
 
-Click **Calibrate fit** on the right of the export bar. Download **Separate-fit samples** to print two strips apart and slide them together after cooling. The ZIP includes small **8 mm tall** STL and 3MF samples at **0.10, 0.15 and 0.20 mm** clearance, plus printing instructions. Start with 0.15 mm and choose the tightest fit that slides comfortably.
+Click **Calibrate fit** on the right of the export bar. Download **Separate-fit samples** to print two strips apart and slide them together after cooling. The ZIP includes narrow, **22.05 mm tall** STL and 3MF samples at **0.10, 0.15 and 0.20 mm** clearance, plus printing instructions. Their full pod-height connector contact makes sliding friction representative of the assembly, while the cropped surrounding walls still save material. Start with 0.15 mm and choose the tightest fit that slides comfortably.
 
-![Calibration dialog with short separate-fit sample downloads](docs/images/calibration.png)
+![Calibration dialog with full-height separate-fit sample downloads](docs/images/calibration.png)
 
 ## Printing your display
 

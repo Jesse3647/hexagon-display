@@ -62,7 +62,8 @@ for file in sorted(models.glob('*.stl')):
 # Sample the first layer, back, mid-depth, rail end and front-stop region.
 # This selection supplements the exact solid sweep checks; it is not exhaustive.
 pod_samples={.2,2.4,10.,19.8,20.2,20.6,22.}
-calibration_samples={.2,2.4,4.,5.8,6.2,6.6,8.}
+# Full-height calibration strips now share the pod's complete connector length.
+calibration_samples=pod_samples
 for name in ['assembly_2x1','assembly_3x3','edited_assembly','calibration_separate_0.10','calibration_separate_0.15','calibration_separate_0.20']:
     samples=calibration_samples if name.startswith('calibration_') else pod_samples
     file=root/f'work/slicing{suffix}'/name/'plate_1.gcode'

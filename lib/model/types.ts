@@ -56,8 +56,8 @@ export const DIM = {
 export const CONNECTOR_SYSTEM = 't-slot-v2';
 /** Sample normal clearances per mating surface (mm), ordered from tightest to loosest. */
 export const CALIBRATION_FITS = [0.1, 0.15, 0.2] as const;
-/** Coupon height above the bed (mm); keeps the 2.4 mm back, square rail end and 1.6 mm stop. */
-export const CALIBRATION_HEIGHT = 8;
+/** Coupon height above the bed (mm), kept equal to pod depth so sliding contact matches a real pod. */
+export const CALIBRATION_HEIGHT = DIM.depth;
 /** Printer calibration settings shared by standalone pods and assemblies. */
 export interface Clearances {
   /** Separation between neighboring exterior wall planes (mm). */
